@@ -18,7 +18,7 @@ export default function Navbar() {
   const navLinks = [
     { title: "Accueil", path: "/" },
     {
-      title: "Le PDC",
+      title: "LE PDC",
       dropdown: [
         { title: "Histoire", path: "/histoire" },
         { title: "Organisation", path: "/organisation" },
@@ -29,7 +29,7 @@ export default function Navbar() {
     { title: "Actualités", path: "/actualites" },
     { title: "Programme", path: "/programme" },
     {
-      title: "Ressources",
+      title: "RESSOURCES",
       dropdown: [
         { title: "Bibliothèque", path: "/bibliotheque" },
         { title: "Vidéos", path: "/videos" },
@@ -42,8 +42,15 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-[#F9F8F5] border-b-2 border-[#0D5931]/10">
       
+      {/* BANNER ÉLECTIONS - NOUVEAUTÉ */}
+      <div className="bg-[#E5A913] text-[#0D5931] py-2 px-4 text-center font-bold text-xs md:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+        <span>Élections Locales : Inscrivez-vous et faites entendre votre voix !</span>
+        <Link to="/inscription-electorale" className="underline hover:text-white ml-2">
+          S'inscrire
+        </Link>
+      </div>
       {/* TOP BAR - VERT PDC INSTITUTIONNEL */}
-      <div className="hidden md:block bg-[#0D5931] text-[#F9F8F5] text-xs font-semibold tracking-wider">
+      {/* <div className="hidden md:block bg-[#0D5931] text-[#F9F8F5] text-xs font-semibold tracking-wider">
         <div className="max-w-7xl mx-auto px-6 py-2.5 flex justify-between items-center">
           <span className="flex items-center gap-2 text-[#E5A913] uppercase">
             Parti des Démocrates Camerounais
@@ -60,7 +67,7 @@ export default function Navbar() {
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">

@@ -1,19 +1,14 @@
-import Actualite from "../../components/Actualite/Actualite";
-import HistoireBrief from "../../components/HistoireBrief/HistoireBrief";
+
+import { Outlet } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
-import Organisation from "../../components/Organisation/Organisation";
-import Video from "../../components/Video/Video";
-import Home from "../../pages/Home";
+import Footer from "../../components/Footer/Footer";
 
 export default function UserLayout() {
     return (
         <div>
             <Navbar/>
-            <Home/>
-            <HistoireBrief/>
-            <Organisation/>
-            <Actualite/>
-            <Video/>
+            <Outlet />
+            <Footer/>
         </div>
     )
 }
