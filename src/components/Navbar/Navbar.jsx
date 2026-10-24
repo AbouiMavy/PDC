@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
+import LanguageSwitch from '../LanguageSwitch/LanguageSwitch';
+import '../LanguageSwitch/LanguageSwitch.css';
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, Mail, ArrowUpRight, Phone } from "lucide-react";
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -16,27 +20,21 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { title: "Accueil", path: "/" },
-    {
-      title: "LE PDC",
-      dropdown: [
-        { title: "Histoire", path: "/histoire" },
-        { title: "Organisation", path: "/organisation" },
-        { title: "Statuts", path: "/statuts" },
-        { title: "Règlement Intérieur", path: "/ri" },
-      ],
-    },
-    { title: "Actualités", path: "/actualites" },
-    { title: "Programme", path: "/programme" },
-    {
-      title: "RESSOURCES",
-      dropdown: [
-        { title: "Bibliothèque", path: "/bibliotheque" },
-        { title: "Vidéos", path: "/videos" },
-        { title: "Galerie", path: "/galerie" },
-      ],
-    },
-    { title: "Contact", path: "/contact" },
+    { title: t('nav.home'), path: '/' },
+    { title: t('nav.party'), dropdown: [
+      { title: t('nav.history'), path: '/histoire' },
+      { title: t('nav.organization'), path: '/organisation' },
+      { title: t('nav.statutes'), path: '/statuts' },
+      { title: t('nav.rules'), path: '/ri' },
+    ] },
+    { title: t('nav.news'), path: '/actualites' },
+    { title: t('nav.program'), path: '/programme' },
+    { title: t('nav.resources'), dropdown: [
+      { title: t('nav.library'), path: '/bibliotheque' },
+      { title: t('nav.videos'), path: '/videos' },
+      { title: t('nav.gallery'), path: '/galerie' },
+    ] },
+    { title: t('nav.contact'), path: '/contact' },
   ];
 
   return (
@@ -44,9 +42,9 @@ export default function Navbar() {
       
       {/* BANNER ÉLECTIONS - NOUVEAUTÉ */}
       <div className="bg-[#E5A913] text-[#0D5931] py-2 px-4 text-center font-bold text-xs md:text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-        <span>Élections Locales : Inscrivez-vous et faites entendre votre voix !</span>
+        <span>{t('nav.banner')}</span>
         <Link to="/inscription-electorale" className="underline hover:text-white ml-2">
-          S'inscrire
+          {t('nav.register')}
         </Link>
       </div>
       {/* TOP BAR - VERT PDC INSTITUTIONNEL */}
@@ -131,18 +129,19 @@ export default function Navbar() {
 
           {/* CTA DESKTOP - NO ARRONDIS / SHADOWS SOLIDES */}
           <div className="hidden lg:flex items-center gap-4">
+            <LanguageSwitch />
             <Link
               to="/soutenir"
               className="px-5 py-2.5 border-2 border-[#0D5931] text-[#0D5931] hover:bg-[#0D5931] hover:text-[#F9F8F5] transition-all font-extrabold uppercase tracking-wider text-xs"
             >
-              Soutenir
+              {t('nav.support')}
             </Link>
 
             <Link
               to="/adhesion"
               className="px-5 py-2.5 bg-[#0D5931] text-[#F9F8F5] border-2 border-[#0D5931] hover:bg-transparent hover:text-[#0D5931] transition-all font-extrabold uppercase tracking-wider text-xs flex items-center gap-1.5 shadow-[3px_3px_0px_0px_#E5A913]"
             >
-              Adhérer <ArrowUpRight size={14} className="text-[#E5A913]" />
+              {t('nav.join')}  <ArrowUpRight size={14} className="text-[#E5A913]" />
             </Link>
           </div>
 
@@ -150,7 +149,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="lg:hidden p-2 text-slate-900 hover:bg-slate-200/50 transition-colors"
-            aria-label="Menu"
+            aria-label={t('nav.menu')}
           >
             {isOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
@@ -202,12 +201,13 @@ export default function Navbar() {
 
             {/* MOBILE ACTION BUTTONS */}
             <div className="flex flex-col gap-4 mt-8">
+              <LanguageSwitch />
               <Link
                 to="/soutenir"
                 onClick={closeMenu}
                 className="w-full text-center bg-transparent border-2 border-[#0D5931] text-[#0D5931] py-3.5 font-black uppercase tracking-wider text-xs"
               >
-                Soutenir le parti
+                {t('nav.supportParty')}
               </Link>
 
               <Link
@@ -215,7 +215,7 @@ export default function Navbar() {
                 onClick={closeMenu}
                 className="w-full text-center bg-[#0D5931] text-[#F9F8F5] py-4 font-black uppercase tracking-wider text-xs shadow-[4px_4px_0px_0px_#E5A913]"
               >
-                Rejoindre le PDC
+                {t('nav.joinParty')}
               </Link>
             </div>
           </nav>

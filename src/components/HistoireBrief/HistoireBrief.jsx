@@ -32,7 +32,7 @@ export default function HistoireBrief() {
             
             <div className="space-y-4 text-slate-600 text-sm lg:text-base leading-relaxed font-medium">
               <p>
-                L’histoire du Parti des Démocrates Camerounais — PDC / CPD s’inscrit dans la trajectoire fondatrice du Cameroun moderne. Elle prend racine dans les combats politiques des années 1950, au moment où les Camerounais cherchent à sortir du régime de tutelle, à bâtir leurs propres institutions et à faire émerger une représentation politique nationale capable de porter l’émancipation du peuple.
+                L’histoire du Parti des Démocrates Camerounais — PDC s’inscrit dans la trajectoire fondatrice du Cameroun moderne. Elle prend racine dans les combats politiques des années 1950, au moment où les Camerounais cherchent à sortir du régime de tutelle, à bâtir leurs propres institutions et à faire émerger une représentation politique nationale capable de porter l’émancipation du peuple.
               </p>
               <p>
                L’origine politique de cette famille démocrate remonte à 1954, avec le COCOCAM, première matrice d’organisation et de rassemblement d’où émergera progressivement le courant des Démocrates Camerounais. Ce moment constitue le point de départ historique de la dynamique qui conduira, quelques années plus tard, à la formation du PDC.
