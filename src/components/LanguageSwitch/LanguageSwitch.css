@@ -1,0 +1,4 @@
+.pdc-language-switch{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:.78rem;font-weight:800}
+.pdc-language-switch button{border:1px solid transparent;padding:6px 8px;border-radius:4px;cursor:pointer;color:#0d5931;background:transparent}
+.pdc-language-switch button[aria-pressed="true"]{background:#0d5931;color:#fff}
+.pdc-language-switch button:focus-visible{outline:3px solid #e5a913;outline-offset:2px}
