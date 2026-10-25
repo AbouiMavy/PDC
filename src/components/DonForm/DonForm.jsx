@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PAYS } from './pays';
 import { INDICATIFS } from './indicatifs';
 import { TERRITOIRES } from './territoires';
+import { communesPourDepartement } from '../../features/adhesion/communes-cm';
 import './DonForm.css';
 
 const MONTANTS = [500, 1000, 2500, 5000, 10000, 25000, 50000, 75000, 100000];
@@ -47,6 +48,8 @@ export default function DonForm({ onValidated }) {
   const [pays,setPays] = useState('CM');
   const [region,setRegion] = useState('');
   const [departement,setDepartement] = useState('');
+  const [communeSelection,setCommuneSelection] = useState('');
+  const [communeAutre,setCommuneAutre] = useState('');
   const [indicatifManuel,setIndicatifManuel] = useState('');
   const [telephoneLocal,setTelephoneLocal] = useState('');
   const [erreur,setErreur] = useState('');
@@ -54,13 +57,16 @@ export default function DonForm({ onValidated }) {
   const territoire = TERRITOIRES[pays];
   const regionSelectionnee = territoire?.regions?.find(r => r.code === region);
   const departementsPossibles = regionSelectionnee?.departements || null;
+  const auCameroun = pays === 'CM';
+  const communesPossibles = auCameroun && departement ? communesPourDepartement(departement) : [];
+  const communeCameroun = communeSelection === '__autre__' || communesPossibles.length === 0 ? communeAutre.trim() : communeSelection;
   const indicatifAuto = INDICATIFS[pays] || '';
   const indicatif = indicatifAuto || indicatifManuel;
   const montant = montantChoisi === 'personnalise' ? integer(montantLibre) : Number(montantChoisi);
   const totalReparti = POSTES.reduce((sum,id) => sum + (integer(repartition[id] || '0') || 0),0);
   const reste = Number.isFinite(montant) ? montant - totalReparti : 0;
   const effacerMessage = () => setErreur('');
-  const changerPays = code => { setPays(code);setRegion('');setDepartement('');setIndicatifManuel('');setTelephoneLocal('');effacerMessage(); };
+  const changerPays = code => { setPays(code);setRegion('');setDepartement('');setCommuneSelection('');setCommuneAutre('');setIndicatifManuel('');setTelephoneLocal('');effacerMessage(); };
   const changerRepartition = (id,value) => { if (value !== '' && !/^\d+$/.test(value)) return; setRepartition(old => ({...old,[id]:value}));effacerMessage();};
   async function copier(text,which) {
     try { await navigator.clipboard.writeText(text); setCopie(which); }
@@ -74,14 +80,17 @@ export default function DonForm({ onValidated }) {
     const b = String(values.dateNaissance || '');
     const d = new Date(`${b}T00:00:00`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(b) || Number.isNaN(d.getTime()) || d.getFullYear()!==Number(b.slice(0,4)) || d.getMonth()+1!==Number(b.slice(5,7)) || d.getDate()!==Number(b.slice(8,10)) || b>today()) return setErreur(t('donation.errors.dob'));
-    if (!values.nom?.trim() || !values.prenom?.trim() || !values.commune?.trim()) return setErreur(t('donation.errors.person'));
+    const communeValidee = auCameroun ? communeCameroun : String(values.commune || '').trim();
+    if (!values.nom?.trim() || !values.prenom?.trim() || !communeValidee) return setErreur(t('donation.errors.person'));
+    if (auCameroun && (!region || !departement)) return setErreur(t('donation.errors.territory'));
     if (!phoneValid(telephoneLocal,indicatif,pays)) return setErreur(t('donation.errors.phone'));
     if (!emailValid(values.email)) return setErreur(t('donation.errors.email'));
     if (!values.declaration) return setErreur(t('donation.errors.statement'));
     // Store ONLY in React component state via onValidated; nothing is sent externally.
     onValidated?.({
       civilite:values.civilite,nom:values.nom.trim(),prenom:values.prenom.trim(),
-      email:values.email.trim(),pays,region,departement,
+      email:values.email.trim(),pays,region:auCameroun ? region : (values.region || region),
+      departement:auCameroun ? departement : (values.departement || departement),commune:communeValidee,
       periodicite,montant,affectation,repartition:affectation==='ciblee' ? {...repartition} : null,
       methode,messagerie,anonymePublic:Boolean(values.anonymePublic)
     });
@@ -137,17 +146,28 @@ export default function DonForm({ onValidated }) {
         <div className="pdc-don-form__field"><label htmlFor="pdc-pays">{t('donation.residenceCountry')}</label><select id="pdc-pays" name="pays" value={pays} onChange={e=>changerPays(e.target.value)} required autoComplete="country">
           {PAYS.map(item=><option key={item.code} value={item.code}>{lang==='en' ? displayNames.of(item.code) || item.nom : item.nom}</option>)}
         </select></div>
-        <div className="pdc-don-form__field"><label htmlFor="pdc-region">{t('donation.region')} <span className="pdc-don-form__facultatif">{t('donation.optional')}</span></label>
-          {territoire ? <select id="pdc-region" name="region" autoComplete="address-level1" value={region} onChange={e=>{setRegion(e.target.value);setDepartement('');}}>
-            <option value="">{t('donation.selectOptional')}</option>{territoire.regions.map(r=><option key={r.code} value={r.code}>{r.nom}</option>)}
+        <div className="pdc-don-form__field"><label htmlFor="pdc-region">{t(auCameroun?'donation.regionRequired':'donation.region')} {!auCameroun && <span className="pdc-don-form__facultatif">{t('donation.optional')}</span>}</label>
+          {territoire ? <select id="pdc-region" name="region" autoComplete="address-level1" value={region} required={auCameroun} onChange={e=>{setRegion(e.target.value);setDepartement('');setCommuneSelection('');setCommuneAutre('');}}>
+            <option value="">{t(auCameroun?'donation.selectRequired':'donation.selectOptional')}</option>{territoire.regions.map(r=><option key={r.code} value={r.code}>{r.nom}</option>)}
           </select> : <input id="pdc-region" name="region" autoComplete="address-level1" maxLength="120" placeholder={t('donation.freeEntry')}/>}
         </div>
-        <div className="pdc-don-form__field"><label htmlFor="pdc-departement">{t('donation.district')} <span className="pdc-don-form__facultatif">{t('donation.optional')}</span></label>
-          {departementsPossibles?.length ? <select id="pdc-departement" name="departement" value={departement} onChange={e=>setDepartement(e.target.value)}>
+        <div className="pdc-don-form__field"><label htmlFor="pdc-departement">{t(auCameroun?'donation.districtRequired':'donation.district')} {!auCameroun && <span className="pdc-don-form__facultatif">{t('donation.optional')}</span>}</label>
+          {auCameroun ? <select id="pdc-departement" name="departement" value={departement} onChange={e=>{setDepartement(e.target.value);setCommuneSelection('');setCommuneAutre('');}} required disabled={!region}>
+            <option value="">{t('donation.selectRequired')}</option>{(departementsPossibles||[]).map(d=><option key={d.code} value={d.code}>{d.nom}</option>)}
+          </select> : departementsPossibles?.length ? <select id="pdc-departement" name="departement" value={departement} onChange={e=>setDepartement(e.target.value)}>
             <option value="">{t('donation.selectOptional')}</option>{departementsPossibles.map(d=><option key={d.code} value={d.code}>{d.nom}</option>)}
           </select> : <input id="pdc-departement" name="departement" maxLength="120" placeholder={territoire&&!region?t('donation.districtFirst'):t('donation.freeOptional')}/>}
         </div>
-        <div className="pdc-don-form__field"><label htmlFor="pdc-ville">{t('donation.city')}</label><input id="pdc-ville" name="commune" required maxLength="120" autoComplete="address-level2"/></div>
+        <div className="pdc-don-form__field"><label htmlFor="pdc-ville">{t('donation.city')}</label>
+          {auCameroun ? <>
+            {communesPossibles.length > 0 ? <select id="pdc-ville" name="commune" required disabled={!departement} value={communeSelection} onChange={e=>{setCommuneSelection(e.target.value);setCommuneAutre('');}}>
+              <option value="">{t('donation.selectRequired')}</option>
+              {communesPossibles.map(nom=><option key={nom} value={nom}>{nom}</option>)}
+              <option value="__autre__">{t('donation.otherCommune')}</option>
+            </select> : <input id="pdc-ville" name="communeAutre" required disabled={!departement} value={communeAutre} onChange={e=>setCommuneAutre(e.target.value)} maxLength="120" placeholder={t('donation.otherCommuneLabel')}/>}
+            {communeSelection==='__autre__' && <input id="pdc-autre-commune" name="communeAutre" aria-label={t('donation.otherCommuneLabel')} placeholder={t('donation.otherCommuneLabel')} required value={communeAutre} onChange={e=>setCommuneAutre(e.target.value)} maxLength="120"/>}
+          </> : <input key={pays} id="pdc-ville" name="commune" required maxLength="120" autoComplete="address-level2"/>}
+        </div>
         <div className="pdc-don-form__field"><label htmlFor="pdc-code-postal">{t('donation.postcode')} <span className="pdc-don-form__facultatif">{t('donation.optional')}</span></label><input id="pdc-code-postal" name="codePostal" autoComplete="postal-code" maxLength="20"/></div>
         <div className="pdc-don-form__field"><label htmlFor="pdc-telephone">{t('donation.phone')}</label><div className="pdc-don-form__telephone">
           {indicatifAuto ? <span className="pdc-don-form__indicatif" aria-label={t('donation.phoneCodeAuto',{code:indicatifAuto})}>{indicatifAuto}</span> : <input className="pdc-don-form__indicatif-manuel" aria-label={t('donation.phoneCode')} type="tel" placeholder="+..." value={indicatifManuel} onChange={e=>setIndicatifManuel(e.target.value)} required maxLength="5"/>}
