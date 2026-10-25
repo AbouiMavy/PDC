@@ -1,0 +1,93 @@
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#162519;background:#f6f7f3;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.62;cursor:not-allowed}.pdc-admin-shell{min-height:100vh}.pdc-admin-topbar{background:#fff;border-bottom:1px solid #e4e9e3;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px max(24px,calc((100vw - 1100px)/2))}.pdc-admin-brand{display:flex;align-items:center;gap:12px}.pdc-admin-brand strong{display:block;font-size:14px;line-height:1.3}.pdc-admin-brand small{display:block;font-size:12px;color:#69796b;margin-top:3px}.pdc-admin-emblem{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:2px solid #d6ae2e;background:#1e603b;color:#f6d564;font-weight:800;font-size:13px;letter-spacing:.04em}.pdc-admin-actions{display:flex;align-items:center;gap:14px}.pdc-admin-lang{display:flex;border:1px solid #cfd8ce;border-radius:8px;overflow:hidden}.pdc-admin-lang button{border:0;padding:7px 10px;background:transparent;font-size:12px;color:#41614d}.pdc-admin-lang button.selected{background:#205d3c;color:#fff;font-weight:700}.pdc-admin-link{border:0;background:transparent;color:#205d3c;font-size:13px;font-weight:650;text-decoration:underline}.pdc-admin-main{max-width:1100px;margin:0 auto;padding:52px 24px 80px}.pdc-admin-kicker{font-size:12px;font-weight:750;text-transform:uppercase;letter-spacing:.14em;color:#2a784e;margin-bottom:10px}.pdc-admin-main h1{font-size:clamp(28px,4vw,43px);letter-spacing:-.04em;line-height:1.14;margin:0 0 14px}.pdc-admin-lead{font-size:17px;color:#5b6c60;margin:0 0 25px}.pdc-admin-sandbox{display:inline-block;background:#fff0bf;border:1px solid #e3c974;color:#6d4e0c;border-radius:8px;font-size:12px;font-weight:750;letter-spacing:.03em;padding:10px 13px;margin-bottom:30px}.pdc-admin-panel{background:white;border:1px solid #dde6de;border-radius:14px;padding:28px;box-shadow:0 6px 24px rgba(26,66,38,.035)}.pdc-admin-login{max-width:550px}.pdc-admin-panel h2,.pdc-admin-dashboard h2{font-size:21px;letter-spacing:-.02em;margin:0 0 11px}.pdc-admin-panel p{line-height:1.65;color:#5b6c60;font-size:14px;margin:0 0 20px}.pdc-admin-login form{display:grid;gap:9px}.pdc-admin-login label{font-size:13px;font-weight:700;color:#314e39;margin-top:6px}.pdc-admin-login input{padding:13px 14px;border:1px solid #b9cbbd;border-radius:8px;max-width:100%;background:white;color:#192b1d}.pdc-admin-login input:focus{outline:2px solid #86b89b;outline-offset:1px}.pdc-admin-primary{background:#20663e;border:1px solid #20663e;color:#fff;border-radius:8px;padding:12px 17px;font-weight:750;margin-top:10px}.pdc-admin-primary:hover{background:#184e31}.pdc-admin-secondary{background:#fff;color:#20663e;border:1px solid #aac9b3;border-radius:8px;padding:10px 15px;font-weight:700}.pdc-admin-buttonrow{display:flex;gap:12px;flex-wrap:wrap}.pdc-admin-error{background:#fff3ef;border:1px solid #e7b5a6;color:#902b20!important;border-radius:8px;padding:12px}.pdc-admin-positive{display:inline-flex;color:#1d6f43;background:#e7f4e9;border-radius:6px;padding:8px 12px;font-size:13px;font-weight:700;margin-bottom:20px}.pdc-admin-titleline{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:15px}.pdc-admin-titleline h2{margin:0}.pdc-admin-statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.pdc-admin-stat{background:white;border:1px solid #e0e8df;border-radius:13px;padding:24px;min-height:152px}.pdc-admin-stat span{font-size:14px;color:#59715f;display:block}.pdc-admin-stat strong{font-size:48px;line-height:1.1;display:block;color:#1a5935;margin-top:20px;font-variant-numeric:tabular-nums}.pdc-admin-hint{color:#677a6b;font-size:13px;line-height:1.5;margin:15px 0 26px}.pdc-admin-future{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));list-style:none;gap:10px;padding:0;margin:15px 0 0}.pdc-admin-future li{border:1px dashed #cbd8ca;background:#f8faf7;color:#718173;padding:14px;border-radius:8px;font-size:13px}.pdc-admin-footnote{border-top:1px solid #e0e8df;padding-top:20px;color:#778578;font-size:12px;margin-top:44px}@media(max-width:650px){.pdc-admin-topbar{padding:13px 16px;align-items:flex-start}.pdc-admin-brand strong{font-size:12px}.pdc-admin-brand small{font-size:11px}.pdc-admin-actions{flex-direction:column;align-items:flex-end;gap:9px}.pdc-admin-main{padding:36px 16px 60px}.pdc-admin-panel{padding:20px}.pdc-admin-statgrid,.pdc-admin-future{grid-template-columns:1fr}}
+
+
+/* V5-B.4 — Héritage PDC : illustration uniquement dans l'interface de développement.
+   La carte en filigrane et le portrait ne recouvrent jamais les contrôles. */
+.pdc-admin-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
+  align-items: center;
+  gap: clamp(18px, 3vw, 42px);
+  margin-bottom: 30px;
+  min-height: 272px;
+}
+.pdc-admin-hero-copy { position: relative; z-index: 1; min-width: 0; }
+.pdc-admin-hero .pdc-admin-sandbox { margin-bottom: 0; }
+.pdc-admin-heritage {
+  min-height: 278px;
+  height: 100%;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+.pdc-admin-heritage-map {
+  position: absolute;
+  z-index: -1;
+  right: -2%;
+  width: 88%;
+  height: 105%;
+  object-fit: contain;
+  opacity: .18;
+  filter: sepia(1) saturate(1.3) hue-rotate(61deg);
+  pointer-events: none;
+}
+.pdc-admin-heritage-portrait {
+  width: 194px;
+  margin: 6px auto 0 12%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 5px solid rgba(255,255,255,.95);
+  background: #e4eae0;
+  box-shadow: 0 9px 30px rgba(22,65,38,.15);
+  transform: rotate(-1.4deg);
+}
+.pdc-admin-heritage-portrait > img {
+  width: 100%;
+  height: 176px;
+  display: block;
+  object-fit: cover;
+  object-position: 47% 34%;
+  filter: grayscale(1) contrast(.92) sepia(.16);
+}
+.pdc-admin-heritage-portrait figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 10px 12px;
+  background: #fff;
+  text-align: center;
+}
+.pdc-admin-heritage-portrait figcaption strong { font-size: 13px; color:#215638; letter-spacing: -.01em; }
+.pdc-admin-heritage-portrait figcaption span { font-size: 11px; color:#647767; }
+.pdc-admin-footnote { margin-top: 44px; }
+.pdc-admin-footnote p { margin: 0 0 7px; line-height: 1.5; }
+.pdc-admin-credits { font-size: 11px; }
+.pdc-admin-credits a { color: #35684b; }
+@media(max-width:760px) {
+  .pdc-admin-hero { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .pdc-admin-heritage { justify-content: flex-end; min-height: 170px; height: 176px; }
+  .pdc-admin-heritage-map { right: 0; height: 185px; width: 210px; }
+  .pdc-admin-heritage-portrait { width: 126px; margin: 0 23px 0 0; border-width: 3px; transform: rotate(-1deg); }
+  .pdc-admin-heritage-portrait > img { height: 102px; }
+  .pdc-admin-heritage-portrait figcaption { padding: 6px; }
+  .pdc-admin-heritage-portrait figcaption strong { font-size: 10px; }
+  .pdc-admin-heritage-portrait figcaption span { font-size: 9px; }
+}
+
+/* V5-B.5 : onglets et statistiques financières agrégées ; aucune fiche nominative. */
+.pdc-admin-tabs { display:flex;gap:8px;margin:0 0 24px;border-bottom:1px solid #dae5db;padding-bottom:10px;flex-wrap:wrap }
+.pdc-admin-tabs button {border:1px solid #cadccc;border-radius:9px;background:white;color:#245d3e;padding:10px 18px;font-weight:700}
+.pdc-admin-tabs button.is-active {background:#205d3c;color:white;border-color:#205d3c}
+.pdc-admin-tabs button:focus-visible {outline:3px solid #d5ad2f;outline-offset:2px}
+.pdc-admin-finance-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.pdc-admin-finance-card {background:white;border:1px solid #dbe6da;border-radius:14px;padding:22px;min-width:0}
+.pdc-admin-finance-card h3 {color:#236443;font-size:18px;margin:0 0 12px;border-bottom:2px solid #d7b32e;padding-bottom:12px}
+.pdc-admin-finance-line {display:flex;align-items:baseline;justify-content:space-between;gap:20px;border-bottom:1px solid #e8efe8;padding:13px 0}
+.pdc-admin-finance-line:last-child {border:0}
+.pdc-admin-finance-line span {color:#56695b;font-size:13px;line-height:1.4}
+.pdc-admin-finance-line strong {color:#194a31;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:15px}
+@media(max-width:850px){.pdc-admin-finance-grid{grid-template-columns:1fr}}
+@media(max-width:440px){.pdc-admin-finance-line{display:block}.pdc-admin-finance-line strong{display:block;text-align:left;margin-top:5px}}
