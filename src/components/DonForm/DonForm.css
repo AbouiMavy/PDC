@@ -1,0 +1,62 @@
+.pdc-don-form{max-width:960px;margin:0 auto;color:#172e22;font-family:inherit}
+.pdc-don-form *{box-sizing:border-box}
+.pdc-don-form__note{text-align:right;font-size:.87rem;color:#59675c;margin:0 0 1rem}
+.pdc-don-form__note strong,.pdc-don-form__attestation strong{color:#a76100}
+.pdc-don-form__section{background:#fff;border:1px solid #dfe9df;border-radius:14px;padding:clamp(18px,3vw,29px);margin-bottom:19px;box-shadow:0 4px 18px rgba(15,65,30,.045)}
+.pdc-don-form__section h2{font-size:1.25rem;font-weight:800;color:#0d5931;margin:0 0 20px}
+.pdc-don-form__section h3{font-size:1rem;font-weight:750;color:#0d5931;margin:21px 0 13px}
+.pdc-don-form__tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:2px solid #0d5931;margin-bottom:11px}
+.pdc-don-form__tabs label{padding:15px 8px;text-align:center;font-weight:750;cursor:pointer;transition:background .2s}
+.pdc-don-form__tabs label.is-selected{background:#0d5931;color:#fff}
+.pdc-don-form__tabs input{position:absolute;opacity:0;width:1px;height:1px}
+.pdc-don-form__tabs label:focus-within{outline:3px solid #e5a913;outline-offset:-3px}
+.pdc-don-form__montants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.pdc-don-form__montant{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border:1px solid #b3c6b8;border-radius:8px;cursor:pointer;font-weight:650;text-align:center}
+.pdc-don-form__montant.is-selected{border-color:#0d5931;background:#e7f4e9;box-shadow:inset 0 0 0 1px #0d5931}
+.pdc-don-form__montant-libre{grid-column:1/-1}
+.pdc-don-form input[type="radio"],.pdc-don-form input[type="checkbox"]{accent-color:#0d5931;flex-shrink:0}
+.pdc-don-form__custom{max-width:340px;margin-top:15px}
+.pdc-don-form__choix{display:grid;gap:13px}
+.pdc-don-form__choix label,.pdc-don-form__attestation{display:flex;align-items:flex-start;gap:11px;cursor:pointer;line-height:1.55}
+.pdc-don-form__choix input,.pdc-don-form__attestation input{margin-top:5px;width:17px;height:17px}
+.pdc-don-form__allocation{border-top:1px solid #e2e9e2;margin-top:19px;padding-top:4px}
+.pdc-don-form__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 21px}
+.pdc-don-form__field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.pdc-don-form__field label{font-size:.94rem;font-weight:650}
+.pdc-don-form__facultatif{font-size:.83rem;font-weight:400;color:#637268}
+.pdc-don-form__field input,.pdc-don-form__field select{background:#fff;color:#182f20;border:1px solid #afc5b8;border-radius:8px;height:44px;padding:9px 12px;width:100%;font:inherit;font-size:.95rem}
+.pdc-don-form__field small{color:#5b6d61;font-size:.79rem}
+.pdc-don-form__field input:focus-visible,.pdc-don-form__field select:focus-visible,.pdc-don-form__submit:focus-visible{outline:3px solid #e5a913;outline-offset:2px}
+.pdc-don-form__fieldset{border:0;padding:0;margin:0 0 20px;min-width:0}
+.pdc-don-form__fieldset legend{font-size:.95rem;font-weight:650;margin-bottom:11px}
+.pdc-don-form__civilite{display:flex;align-items:center;flex-wrap:wrap;gap:10px 25px}
+.pdc-don-form__civilite label{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.pdc-don-form__aide{font-size:.88rem;color:#54685a;line-height:1.6;margin:12px 0 16px}
+.pdc-don-form__bilan{margin:17px 0 0;padding:14px;background:#eff7ef;border-radius:8px;font-size:.9rem}
+.pdc-don-form__methodes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pdc-don-form__methode{display:flex;gap:10px;align-items:flex-start;padding:16px;border:1px solid #b9cabd;border-radius:8px;cursor:pointer}
+.pdc-don-form__methode.is-selected{background:#e7f4e9;border-color:#0d5931;box-shadow:inset 0 0 0 1px #0d5931}
+.pdc-don-form__methode span{display:flex;flex-direction:column;gap:6px}
+.pdc-don-form__methode small{color:#5f7163;line-height:1.4;font-size:.8rem}
+.pdc-don-form__subchoix{padding:18px 0 0;margin-bottom:0}
+.pdc-don-form__rib{margin-top:18px;padding:19px;background:#f1f7f2;border:1px solid #cedcd1;border-radius:10px}
+.pdc-don-form__rib h3{margin:0 0 15px}
+.pdc-don-form__rib dl{margin:0;display:grid;gap:10px}
+.pdc-don-form__rib dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;border-bottom:1px solid #d5e3d7;padding-bottom:8px}
+.pdc-don-form__rib dt{font-weight:700}
+.pdc-don-form__rib dd{margin:0;overflow-wrap:anywhere;min-width:0}
+.pdc-don-form__rib code{font-size:.89rem}
+.pdc-don-form__rib button{border:1px solid #0d5931;border-radius:5px;padding:5px 8px;margin-left:12px;background:#fff;color:#0d5931;cursor:pointer;font-weight:650}
+.pdc-don-form__erreur,.pdc-don-form__succes{padding:14px 16px;border-radius:8px;margin:0 0 17px}
+.pdc-don-form__erreur{background:#fff0ee;color:#992820}
+.pdc-don-form__succes{background:#e4f3e8;color:#145b2e}
+.pdc-don-form__submit{background:#0d5931;color:#fff;border:0;padding:15px 23px;border-radius:8px;font-size:1rem;min-height:48px;font-weight:750;cursor:pointer}
+.pdc-don-form__submit:hover{background:#094524}
+@media(max-width:650px){.pdc-don-form__grid,.pdc-don-form__methodes{grid-template-columns:1fr}.pdc-don-form__montants{grid-template-columns:repeat(2,minmax(0,1fr))}.pdc-don-form__montant-libre{grid-column:1/-1}.pdc-don-form__rib dl>div{grid-template-columns:1fr;gap:3px}.pdc-don-form__rib button{display:block;margin:8px 0 0}.pdc-don-form__tabs label{font-size:.92rem}}
+/* V3 : indicatif automatique + numéro local, sans modifier la grille de montants */
+.pdc-don-form__telephone{display:flex;align-items:stretch;min-width:0;gap:0}
+.pdc-don-form__telephone .pdc-don-form__indicatif{display:flex;align-items:center;justify-content:center;white-space:nowrap;background:#eaf3eb;color:#0d5931;border:1px solid #afc5b8;border-right:0;border-radius:8px 0 0 8px;padding:0 13px;min-width:65px;font-size:.99rem;font-weight:800}
+.pdc-don-form__telephone input#pdc-telephone{border-radius:0 8px 8px 0;flex:1;min-width:0}
+.pdc-don-form__telephone input.pdc-don-form__indicatif-manuel{border-radius:8px 0 0 8px;min-width:65px;max-width:85px;flex:0 0 85px;background:#eaf3eb}
+.pdc-don-form__montants .pdc-don-form__montant{min-height:54px}
+@media (max-width:650px){.pdc-don-form__montants{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pdc-don-form__montant{padding:11px 3px;font-size:.78rem;line-height:1.25}.pdc-don-form__montant:not(.pdc-don-form__montant-libre){flex-direction:column;gap:4px}}

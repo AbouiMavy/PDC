@@ -1,0 +1,10 @@
+.pdc-merci-page{min-height:65vh;background:#f6f8f4;padding:clamp(25px,6vw,75px) 16px;color:#203b2a}
+.pdc-merci-card{max-width:860px;margin:auto;background:#fff;border:1px solid #dce8dc;border-top:5px solid #e5a913;border-radius:12px;padding:clamp(20px,4vw,44px);text-align:center}
+.pdc-merci-card h1{font-weight:900;color:#0d5931;font-size:clamp(1.5rem,3vw,2.3rem)}
+.pdc-merci-card h2{font-weight:750;font-size:1.25rem;margin-top:12px}
+.pdc-merci-card p{line-height:1.7;margin:16px auto;max-width:720px}
+.pdc-merci-image{width:100%;height:auto;max-height:720px;object-fit:contain;margin:20px auto}
+.pdc-merci-placeholder{background:#f0f6ef;border:2px dashed #b4ceb7;padding:60px 18px;border-radius:12px}
+.pdc-merci-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:24px}
+.pdc-merci-actions a{border:1px solid #0d5931;border-radius:6px;padding:12px 16px;color:#0d5931;font-weight:700}
+.pdc-merci-actions a:first-child{background:#0d5931;color:white}

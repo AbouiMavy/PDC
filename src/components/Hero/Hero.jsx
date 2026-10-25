@@ -68,7 +68,7 @@ export default function Hero() {
             Héritiers d'une vision historique, nous bâtissons aujourd'hui le Cameroun de demain.
           </p>
           <p className="mt-2 text-[#E5A913] text-lg font-medium max-w-lg">
-            God - Fatherland - Justice - Equality
+            Dieu – Patrie – Justice - Démocratie
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">

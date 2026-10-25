@@ -1,0 +1,25 @@
+.pdc-soutenir-page{min-height:80vh;background:#f6f8f4;padding:clamp(24px,5vw,64px) 18px;color:#243b2d}
+.pdc-soutenir-intro{max-width:960px;margin:0 auto 30px;padding:clamp(20px,4vw,38px);background:#fff;border:1px solid #dfe9df;border-radius:14px;box-shadow:0 4px 18px rgba(15,65,30,.04)}
+.pdc-soutenir-intro__accent{display:flex;gap:8px;margin-bottom:15px}
+.pdc-soutenir-intro__accent span{width:15px;height:15px;border-radius:50%;background:#0d5931}
+.pdc-soutenir-intro__accent span+span{background:#e5a913}
+.pdc-soutenir-intro__eyebrow{color:#0d5931;font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:0 0 9px}
+.pdc-soutenir-intro h1{color:#0d5931;font-size:clamp(1.55rem,3vw,2.25rem);line-height:1.22;font-weight:900;margin:0 0 21px}
+.pdc-soutenir-intro p:not(.pdc-soutenir-intro__eyebrow){line-height:1.75;margin:0 0 15px;font-size:1rem}
+.pdc-soutenir-intro .pdc-soutenir-intro__slogan{font-weight:800;color:#0d5931;border-top:2px solid #e5a913;padding-top:13px;margin:19px 0 0}
+/* V4: parcours 3 étapes, sans pop-up */
+.pdc-soutenir-steps{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:960px;margin:0 auto 22px}
+.pdc-soutenir-step{display:flex;align-items:center;gap:7px;color:#52685a;min-width:0;font-size:.87rem}
+.pdc-soutenir-step span{width:28px;height:28px;display:grid;place-items:center;border:1px solid #b6ccbb;border-radius:50%;flex-shrink:0}
+.pdc-soutenir-step.is-current span,.pdc-soutenir-step.is-done span{background:#0d5931;color:#fff;border-color:#0d5931}
+.pdc-soutenir-step.is-current{color:#0d5931}
+.pdc-soutenir-next{background:#0d5931;color:#fff;border:none;border-radius:6px;padding:15px 22px;cursor:pointer;font-weight:800;margin-top:13px;min-height:48px}
+.pdc-soutenir-back,.pdc-soutenir-expand{background:transparent;color:#0d5931;border:1px solid #0d5931;border-radius:6px;padding:10px 14px;cursor:pointer;font-weight:750;margin:12px 0}
+.pdc-soutenir-next:focus-visible,.pdc-soutenir-back:focus-visible,.pdc-soutenir-expand:focus-visible{outline:3px solid #e5a913;outline-offset:2px}
+.pdc-soutenir-form-shell{max-width:960px;margin:0 auto 15px}
+.pdc-soutenir-draft{color:#53685b;font-size:.9rem;line-height:1.6}
+.pdc-soutenir-review dl{display:grid;gap:10px}
+.pdc-soutenir-review dl>div{display:grid;grid-template-columns:minmax(130px,35%) 1fr;border-bottom:1px solid #e1eae1;padding:9px 0;gap:12px}
+.pdc-soutenir-review dt{font-weight:700}
+.pdc-soutenir-review dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:550px){.pdc-soutenir-step{font-size:.72rem;gap:4px}.pdc-soutenir-step strong{max-width:90px}.pdc-soutenir-review dl>div{grid-template-columns:1fr}}

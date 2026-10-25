@@ -32,14 +32,15 @@ export default function Footer() {
         {/* COLONNE 3 : CONTACT */}
         <div>
           <h4 className="font-black uppercase mb-6 border-b-2 border-[#0D5931] pb-2 text-[#E5A913]">Contact</h4>
-          <p className="text-sm text-slate-400 mb-2">Yaoundé, Mbankolo</p>
-          <p className="text-sm text-slate-400">contact@pdc-cameroun.org</p>
+          <p className="text-sm text-slate-400 mb-2">BP 35130 Yaoundé, Bastos</p>
+          <p className="text-sm text-slate-400 mb-2">1er étage, Immeuble Campost (Yaoundé, Nlongkak)</p>
+          <p className="text-sm text-slate-400">contact.democrates@gmail.com</p>
         </div>
 
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-slate-800 text-[10px] uppercase tracking-widest text-slate-500 text-center">
-        © 2026 Parti des Démocrates Camerounais. Tous droits réservés. Construit pour la renaissance.
+        © 2026 Parti des Démocrates Camerounais (PDC). Tous droits réservés. Unis dans la vérité, refondons la nation.
       </div>
     </footer>
   );
