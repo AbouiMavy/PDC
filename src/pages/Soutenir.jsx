@@ -42,6 +42,7 @@ export default function Soutenir() {
         <div><dt>{t('flow.allocation')}</dt><dd>{review.affectation==='libre'?t('donation.allocationFree'):t('donation.allocationTargeted')}</dd></div>
         {review.repartition && Object.entries(review.repartition).filter(([,v])=>Number(v)>0).map(([id,v])=><div key={id}><dt>{t(`donation.posts.${id}`)}</dt><dd>{formatAmount(Number(v))}</dd></div>)}
         <div><dt>{t('flow.payment')}</dt><dd>{t(`donation.methods.${review.methode}`)}</dd></div>
+        <div><dt>{t('flow.municipality')}</dt><dd>{review.commune}</dd></div>
         <div><dt>{t('flow.email')}</dt><dd>{review.email}</dd></div>
       </dl>
       <p className="pdc-soutenir-draft">{t('flow.noPayment')}</p>

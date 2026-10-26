@@ -1,0 +1,85 @@
+/* V5-A: styles autonomes pour préserver la V4. */
+.pdc-adhesion{min-height:75vh;padding:clamp(20px,4vw,60px) 16px;background:#f6f8f4;color:#20372b;font-family:inherit}
+.pdc-adhesion *{box-sizing:border-box}
+.pdc-adhesion-steps{max-width:980px;margin:0 auto 24px;display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap}
+.pdc-adhesion-steps>div{display:flex;align-items:center;gap:9px;font-size:.91rem;color:#486456}
+.pdc-adhesion-steps span{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;border:1px solid #c9d7cb;font-weight:700}
+.pdc-adhesion-steps .current{font-weight:800;color:#0d5931}.pdc-adhesion-steps .current span{color:#fff;background:#0d5931;border-color:#0d5931}
+.pdc-adhesion-card{max-width:980px;margin:0 auto;background:#fff;border:1px solid #dae8da;border-radius:13px;padding:clamp(20px,4vw,38px);box-shadow:0 4px 20px #1949270c}
+.pdc-adhesion-card h1{font-size:clamp(1.65rem,3.7vw,2.5rem);line-height:1.15;color:#0d5931;font-weight:900;margin:8px 0 20px}
+.pdc-adhesion-card h2{font-size:1.16rem;color:#0d5931;font-weight:800;margin:28px 0 14px;border-bottom:2px solid #d4b64d;padding-bottom:8px}
+.pdc-adhesion-card h3{font-size:1rem;font-weight:800;margin:8px 0 15px;color:#0d5931}
+.pdc-adhesion-card p{line-height:1.65;margin-bottom:14px}.pdc-adhesion-overline{text-transform:uppercase;color:#0d5931;font-size:.8rem;font-weight:800;letter-spacing:.09em}
+.pdc-adhesion-accent{display:flex;gap:7px}.pdc-adhesion-accent i{display:block;width:16px;height:16px;background:#0d5931;border-radius:50%}.pdc-adhesion-accent i+i{background:#e5a913}
+.pdc-adhesion-primary,.pdc-adhesion-secondary,.pdc-adhesion-back{border-radius:5px;padding:13px 18px;min-height:44px;font-weight:750;cursor:pointer;transition:background .15s}
+.pdc-adhesion-primary{background:#0d5931;color:#fff;border:2px solid #0d5931}.pdc-adhesion-primary:hover{background:#074021}
+.pdc-adhesion-primary:disabled{opacity:.45;cursor:not-allowed}
+.pdc-adhesion-secondary,.pdc-adhesion-back{color:#0d5931;border:1.5px solid #0d5931;background:#fff}.pdc-adhesion-secondary:hover,.pdc-adhesion-back:hover{background:#edf4ee}
+.pdc-adhesion-back{margin-bottom:20px}
+.pdc-adhesion button:focus-visible,.pdc-adhesion input:focus-visible,.pdc-adhesion select:focus-visible,.pdc-adhesion a:focus-visible{outline:3px solid #e5a913;outline-offset:2px}
+.pdc-adhesion-documents{padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;margin:18px 0}.pdc-adhesion-documents li{border:1px solid #d9e4db;padding:13px 15px;border-radius:6px}.pdc-adhesion-documents a{color:#0d5931;font-weight:700;text-decoration:underline;overflow-wrap:anywhere}
+.pdc-adhesion-documents.small{display:flex;gap:8px;margin:10px 0 16px}.pdc-adhesion-documents.small a{font-size:.91rem}
+.pdc-adhesion-alert{padding:12px 15px;border-left:4px solid #b9850e;background:#fff9e9;color:#5f4d25;font-size:.91rem}
+.pdc-adhesion-panel{padding:17px;border:1px solid #d9e4db;border-radius:7px;background:#fafcf9;margin:18px 0}
+.pdc-adhesion-form{display:block}.pdc-adhesion-form fieldset{border:0;margin:12px 0 24px;padding:0;min-width:0}.pdc-adhesion-form legend{font-weight:800;margin:0 0 10px}
+.pdc-adhesion-radio{display:flex;gap:12px;flex-wrap:wrap}.pdc-adhesion-radio label,.pdc-adhesion-check{display:flex;gap:9px;align-items:center;cursor:pointer;padding:9px 12px;border:1px solid #dce9de;border-radius:6px;line-height:1.45}.pdc-adhesion-radio-column{flex-direction:column;align-items:flex-start}.pdc-adhesion-radio-column label{width:100%}
+.pdc-adhesion-form input[type=checkbox],.pdc-adhesion-form input[type=radio]{accent-color:#0d5931;width:16px;height:16px;flex-shrink:0}
+.pdc-adhesion-check{margin:12px 0;background:#f7faf7}
+.pdc-adhesion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;row-gap:18px;align-items:start;margin:14px 0}
+.pdc-adhesion-grid > .pdc-adhesion-field{margin:0}
+.pdc-adhesion-field{display:flex;flex-direction:column;gap:6px;margin:12px 0;min-width:0}.pdc-adhesion-field label{font-weight:750;font-size:.92rem}.pdc-adhesion-field input,.pdc-adhesion-field select{border:1px solid #b6c9bb;border-radius:5px;padding:12px 11px;color:#253b2d;background:#fff;min-width:0;width:100%;font-family:inherit;min-height:44px}
+.pdc-adhesion-field input:disabled,.pdc-adhesion-field select:disabled{background:#f1f2f0;color:#7a8a7f}
+.pdc-adhesion-field small,.pdc-adhesion-card small{font-size:.78rem;line-height:1.55;color:#607366}
+.pdc-adhesion-phone{display:flex;align-items:center;gap:0}.pdc-adhesion-phone span{border:1px solid #b6c9bb;border-right:0;background:#edf3ed;border-radius:5px 0 0 5px;padding:12px 13px;font-weight:700;white-space:nowrap}.pdc-adhesion-phone input{border-radius:0 5px 5px 0}
+.pdc-adhesion-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pdc-adhesion-metrics>div{border:1px solid #dfe7e0;border-radius:8px;background:#f8fbf8;padding:16px;display:flex;flex-direction:column;gap:6px}.pdc-adhesion-metrics span{font-size:.86rem}.pdc-adhesion-metrics strong{color:#0d5931;font-size:1.1rem}
+.pdc-adhesion-amounts{background:#edf5ed;border:1px solid #bdd9c1;border-radius:8px;padding:15px;margin:20px 0;display:grid;gap:10px}
+.pdc-adhesion-amounts>div{display:flex;justify-content:space-between;gap:16px}.pdc-adhesion-amounts .total{padding-top:12px;border-top:1px solid #a5cbb0;font-size:1.08rem;color:#0d5931;font-weight:900}
+.pdc-adhesion-error{background:#ffeded;color:#9c1717;padding:10px 14px;border-left:4px solid #b91c1c}
+.pdc-adhesion-review dl{display:grid;gap:8px;margin:15px 0 24px}.pdc-adhesion-review dl>div{display:grid;grid-template-columns:35% minmax(0,1fr);gap:10px;border-bottom:1px solid #e0e9e1;padding:10px 0}.pdc-adhesion-review dt{font-weight:800}.pdc-adhesion-review dd{margin:0;overflow-wrap:anywhere}
+.pdc-adhesion-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.pdc-adhesion-thanks{max-width:900px;margin:40px auto;padding:16px}.pdc-adhesion-thanks .pdc-adhesion-card{text-align:center}.pdc-adhesion-image{width:100%;max-width:750px;height:auto;margin:18px auto;border-radius:8px}.pdc-adhesion-imageslot{padding:48px 20px;background:#edf4ee;border:2px dashed #8db79c;border-radius:10px;color:#0d5931}
+@media(max-width:640px){.pdc-adhesion-grid,.pdc-adhesion-metrics{grid-template-columns:1fr}.pdc-adhesion-steps{gap:4px}.pdc-adhesion-steps>div{font-size:.74rem}.pdc-adhesion-review dl>div{grid-template-columns:1fr}.pdc-adhesion-amounts>div{flex-wrap:wrap}.pdc-adhesion-card{padding:18px}}
+
+/* V5-A.1 : cartes de tarifs accessibles et gabarit de champs homogène. */
+.pdc-adhesion-section-intro{margin:0 0 12px;color:#435d49}
+.pdc-adhesion-plans{margin:12px 0 16px !important}
+.pdc-adhesion-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.pdc-adhesion-choice{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;row-gap:4px;align-items:center;min-width:0;min-height:92px;padding:14px 13px;border:2px solid #c7d9cd;border-radius:8px;background:#fff;cursor:pointer}
+.pdc-adhesion-choice.selected{border-color:#0d5931;background:#eff7ef;box-shadow:inset 0 0 0 1px #0d5931}
+.pdc-adhesion-choice:hover{border-color:#338154}
+.pdc-adhesion-choice input{grid-row:1 / 3;align-self:center}
+.pdc-adhesion-choice-label{font-weight:700;line-height:1.35}
+.pdc-adhesion-choice strong{grid-column:2;color:#0d5931;font-size:1.14rem;font-weight:900}
+.pdc-adhesion-fee-note{margin:15px 0 18px;padding:14px 16px;border-left:4px solid #e5a913;background:#fff8df;color:#3e4d39}
+.pdc-adhesion-phone{min-width:0;width:100%}
+.pdc-adhesion-phone input{flex:1;min-width:0;width:0}
+@media(max-width:640px){.pdc-adhesion-choice-grid{grid-template-columns:1fr}}
+
+/* V5-A.2 : grille équilibrée. Chaque champ conserve une demi-largeur sur ordinateur. */
+.pdc-adhesion-grid > * { min-width: 0; }
+.pdc-adhesion-inline-help {
+  margin: 12px 0;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid #d9e4db;
+  border-left: 4px solid #e5a913;
+  border-radius: 6px;
+  background: #f7faf5;
+  color: #516958;
+  font-size: .82rem;
+  line-height: 1.6;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+@media (max-width:640px) {
+  .pdc-adhesion-inline-help { margin: 0 0 12px; }
+}
+
+/* V5-B.6.1 — demandes facultatives de carte et prévisualisation locale des photos. */
+.pdc-adhesion-wide { grid-column: 1 / -1; }
+.pdc-adhesion-photo-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.pdc-adhesion-portrait { width: 112px; height: 138px; object-fit: cover; border: 2px solid #0d5931; border-radius: 5px; margin-top: 8px; }
+.pdc-adhesion-muted { color:#536b58; font-size:.9rem; line-height:1.6; }
+.pdc-adhesion-field input[type="file"] { max-width:100%; font-size:.9rem; }
+@media(max-width:640px) { .pdc-adhesion-photo-grid { grid-template-columns: 1fr; } }
