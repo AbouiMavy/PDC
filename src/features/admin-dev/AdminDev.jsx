@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { createAdminDevClient, AdminApiError } from './client.mjs';
 import { formatMinor } from './finance.mjs';
+import ReviewPanel from './ReviewPanel.jsx';
+import CardQueuePanel from './CardQueuePanel.jsx';
 
 const messages = {
   fr: {
@@ -8,7 +10,7 @@ const messages = {
     title: 'Administration nationale', subtitle: 'Accès de développement réservé aux administrateurs habilités.',
     portraitAlt: 'André-Marie Mbida, photographie d’archives du PDC, 1957', portraitDate: 'Archives PDC · 1957',
     dev: 'ENVIRONNEMENT DE TEST — AUCUNE DONNÉE RÉELLE',
-    description: 'Cette interface utilise la connexion Supabase Auth et l’API locale en lecture seule. Aucun dossier nominatif n’est affiché.',
+    description: 'Cette interface utilise Supabase Auth et une API locale en lecture seule. Les détails des revues sont réservés aux administrateurs habilités.',
     email: 'Adresse e-mail du compte de test', password: 'Mot de passe du compte de test',
     login: 'Vérifier mon accès', loggingIn: 'Vérification…', logout: 'Fermer la session',
     deniedTitle: 'Accès non autorisé', denied: 'Le compte est authentifié, mais ne dispose d’aucune habilitation nationale active.',
@@ -16,7 +18,7 @@ const messages = {
     active: 'Habilitation nationale active', summary: 'Vue nationale — indicateurs agrégés',
     pending: 'Dossiers en attente de traitement', members: 'Adhésions actives',
     refresh: 'Actualiser les indicateurs', refreshing: 'Actualisation…',
-    overviewTab: 'Adhésions', financeTab: 'Finances', financeTitle: 'Synthèse financière nationale',
+    overviewTab: 'Adhésions', financeTab: 'Finances', reviewTab: 'Revues hebdomadaires', cardsTab: 'Cartes à préparer', financeTitle: 'Synthèse financière nationale',
     initialFeeDue: 'Frais de première adhésion appelés',
     initialFeePaid: 'Frais de première adhésion confirmés',
     annualDue: 'Cotisations annuelles appelées', annualPaid: 'Cotisations annuelles confirmées',
@@ -36,7 +38,7 @@ const messages = {
     title: 'National administration', subtitle: 'Development access for authorized administrators only.',
     portraitAlt: 'André-Marie Mbida, PDC historical photograph, 1957', portraitDate: 'PDC archives · 1957',
     dev: 'TEST ENVIRONMENT — NO REAL PERSONAL DATA',
-    description: 'This interface uses Supabase Auth and the local read-only API. No individual records are displayed.',
+    description: 'This interface uses Supabase Auth and a local read-only API. Review details require national administrator authorization.',
     email: 'Test account email address', password: 'Test account password',
     login: 'Check my access', loggingIn: 'Checking…', logout: 'End session',
     deniedTitle: 'Access denied', denied: 'The account is authenticated but has no active national administrative role.',
@@ -44,7 +46,7 @@ const messages = {
     active: 'Active national administrator role', summary: 'National overview — aggregate indicators',
     pending: 'Applications awaiting review', members: 'Active memberships',
     refresh: 'Refresh indicators', refreshing: 'Refreshing…',
-    overviewTab: 'Memberships', financeTab: 'Finances', financeTitle: 'National financial overview',
+    overviewTab: 'Memberships', financeTab: 'Finances', reviewTab: 'Weekly reviews', cardsTab: 'Cards to prepare', financeTitle: 'National financial overview',
     initialFeeDue: 'Initial membership fees due',
     initialFeePaid: 'Initial membership fees confirmed',
     annualDue: 'Annual dues due', annualPaid: 'Annual dues confirmed',
@@ -208,10 +210,12 @@ export default function AdminDev() {
           <div className="pdc-admin-tabs" role="tablist" aria-label={t.summary}>
             <button role="tab" type="button" aria-selected={tab === 'overview'} className={tab === 'overview' ? 'is-active' : ''} onClick={() => {setTab('overview');setError('');}} disabled={busy}>{t.overviewTab}</button>
             <button role="tab" type="button" aria-selected={tab === 'finance'} className={tab === 'finance' ? 'is-active' : ''} onClick={onFinanceTab} disabled={busy}>{t.financeTab}</button>
+            <button role="tab" type="button" aria-selected={tab === 'reviews'} className={tab === 'reviews' ? 'is-active' : ''} onClick={() => { setTab('reviews'); setError(''); }} disabled={busy}>{t.reviewTab}</button>
+            <button role="tab" type="button" aria-selected={tab === 'cards'} className={tab === 'cards' ? 'is-active' : ''} onClick={() => { setTab('cards'); setError(''); }} disabled={busy}>{t.cardsTab}</button>
           </div>
-          <div className="pdc-admin-titleline"><h2>{tab === 'overview' ? t.summary : t.financeTitle}</h2><button type="button" className="pdc-admin-secondary" onClick={onRefresh} disabled={busy}>{busy ? t.refreshing : t.refresh}</button></div>
+          {tab !== 'reviews' && tab !== 'cards' && <div className="pdc-admin-titleline"><h2>{tab === 'overview' ? t.summary : t.financeTitle}</h2><button type="button" className="pdc-admin-secondary" onClick={onRefresh} disabled={busy}>{busy ? t.refreshing : t.refresh}</button></div>}
           {error && <p className="pdc-admin-error" role="alert">{error}</p>}
-          {tab === 'overview' ? <>
+          {tab === 'reviews' ? <ReviewPanel client={client} lang={lang} onAccessError={handleAccessError}/> : tab === 'cards' ? <CardQueuePanel client={client} lang={lang} onAccessError={handleAccessError}/> : tab === 'overview' ? <>
             <div className="pdc-admin-statgrid"><div className="pdc-admin-stat"><span>{t.pending}</span><strong>{metrics?.applicationsToReview ?? '–'}</strong></div><div className="pdc-admin-stat"><span>{t.members}</span><strong>{metrics?.activeMemberships ?? '–'}</strong></div></div>
             <p className="pdc-admin-hint">{t.empty}</p>
           </> : <>

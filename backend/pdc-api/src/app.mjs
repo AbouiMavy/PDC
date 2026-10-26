@@ -52,7 +52,9 @@ export function createApp({ verifyUser, repository, allowedOrigins = [] }) {
       'Access-Control-Allow-Headers': 'Authorization',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
     } : {};
-    const path = new URL(req.url ?? '/', 'http://localhost').pathname;
+    const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    const path = requestUrl.pathname;
+    const detailMatch = /^\/v1\/admin\/reviews\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.exec(path);
     if (req.method === 'OPTIONS') {
       if (!originAllowed) return respond(res, 403, { error: 'ORIGIN_DENIED' });
       res.writeHead(204, { 'Cache-Control': 'no-store', ...corsHeaders });
@@ -60,7 +62,8 @@ export function createApp({ verifyUser, repository, allowedOrigins = [] }) {
     }
     if (req.method !== 'GET') return respond(res, 405, { error: 'METHOD_NOT_ALLOWED' }, corsHeaders);
     if (path === '/health') return respond(res, 200, { status: 'ok', mode: 'development' }, corsHeaders);
-    if (!['/v1/admin/session', '/v1/admin/dashboard', '/v1/admin/finance-overview'].includes(path)) {
+    if (!['/v1/admin/session', '/v1/admin/dashboard', '/v1/admin/finance-overview',
+          '/v1/admin/reviews', '/v1/admin/cards'].includes(path) && !detailMatch) {
       return respond(res, 404, { error: 'NOT_FOUND' }, corsHeaders);
     }
     const token = bearerToken(req.headers.authorization);
@@ -72,6 +75,37 @@ export function createApp({ verifyUser, repository, allowedOrigins = [] }) {
       }
       if (path === '/v1/admin/session') {
         return respond(res, 200, { authorized: true, role: 'national_admin' }, corsHeaders);
+      }
+      if (path === '/v1/admin/cards') {
+        const terms = [...requestUrl.searchParams.keys()];
+        if (terms.some(k => k !== 'offset') || terms.length > 1) {
+          return respond(res, 400, { error: 'INVALID_QUERY' }, corsHeaders);
+        }
+        const raw = requestUrl.searchParams.get('offset') ?? '0';
+        if (!/^(0|[1-9][0-9]{0,4})$/.test(raw) || Number(raw) > 10000 || Number(raw) % 50 !== 0) {
+          return respond(res, 400, { error: 'INVALID_PAGE' }, corsHeaders);
+        }
+        const offset = Number(raw);
+        const cards = await repository.cardPreparationQueue(user.id, offset);
+        return respond(res, 200, { cards, offset, pageSize: 50, hasMore: cards.length === 50 }, corsHeaders);
+      }
+      if (path === '/v1/admin/reviews') {
+        if (requestUrl.search) return respond(res, 400, {error:'INVALID_QUERY'}, corsHeaders);
+        const batches = await repository.reviewBatches(user.id);
+        return respond(res, 200, {batches}, corsHeaders);
+      }
+      if (detailMatch) {
+        const terms = [...requestUrl.searchParams.keys()];
+        if (terms.some(k => k !== 'offset') || terms.length > 1) {
+          return respond(res, 400, {error:'INVALID_QUERY'}, corsHeaders);
+        }
+        const raw = requestUrl.searchParams.get('offset') ?? '0';
+        if (!/^(0|[1-9][0-9]{0,4})$/.test(raw) || Number(raw)>10000 || Number(raw)%50!==0) {
+          return respond(res, 400, {error:'INVALID_PAGE'}, corsHeaders);
+        }
+        const offset = Number(raw);
+        const members = await repository.reviewMembers(user.id, detailMatch[1], offset);
+        return respond(res, 200, {members, offset, pageSize:50, hasMore:members.length===50}, corsHeaders);
       }
       if (path === '/v1/admin/finance-overview') {
         const rows = await repository.financeOverview(user.id);

@@ -41,6 +41,23 @@ export async function makeAdminRepository(env = process.env) {
       );
       return rows;
     },
+    async reviewBatches(userId) {
+      const { rows } = await pool.query(
+        'SELECT * FROM pdc_private.api_review_batches($1::uuid)', [userId]);
+      return rows;
+    },
+    async reviewMembers(userId, batchId, offset) {
+      const { rows } = await pool.query(
+        'SELECT * FROM pdc_private.api_review_members($1::uuid,$2::uuid,$3::integer)',
+        [userId, batchId, offset]);
+      return rows;
+    },
+    async cardPreparationQueue(userId, offset) {
+      const { rows } = await pool.query(
+        'SELECT * FROM pdc_private.api_card_preparation_queue($1::uuid,$2::integer)',
+        [userId, offset]);
+      return rows;
+    },
     async close() { await pool.end(); },
   };
 }

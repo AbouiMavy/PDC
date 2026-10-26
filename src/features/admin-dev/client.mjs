@@ -49,7 +49,10 @@ export function createAdminDevClient({ authOrigin, publishableKey, fetchImpl = f
     },
     async request(path) {
       if (!bearer) throw new AdminApiError(401, 'AUTH_REQUIRED');
-      if (!['/v1/admin/session', '/v1/admin/dashboard', '/v1/admin/finance-overview'].includes(path)) {
+      if (!['/v1/admin/session', '/v1/admin/dashboard', '/v1/admin/finance-overview',
+            '/v1/admin/reviews'].includes(path) &&
+          !/^\/v1\/admin\/cards\?offset=(0|[1-9][0-9]{0,4})$/.test(path) &&
+          !/^\/v1\/admin\/reviews\/[0-9a-f-]{36}\?offset=(0|[1-9][0-9]{0,4})$/i.test(path)) {
         throw new Error('Unexpected administration path');
       }
       const response = await fetchImpl(`${apiPrefix}${path}`, {
@@ -68,6 +71,23 @@ export function createAdminDevClient({ authOrigin, publishableKey, fetchImpl = f
       if (path === '/v1/admin/finance-overview') {
         try { validateFinanceResponse(result); }
         catch { throw new AdminApiError(503, 'FINANCE_BAD_RESPONSE'); }
+      }
+      if (path.startsWith('/v1/admin/cards?') &&
+          (!Array.isArray(result.cards) || result.cards.length > 50 || result.pageSize !== 50 ||
+           !Number.isInteger(result.offset) || result.offset < 0 || result.offset > 10000 || result.offset % 50 !== 0 ||
+           typeof result.hasMore !== 'boolean' || result.cards.some(c =>
+             !c || !['cameroon','diaspora'].includes(c.card_variant) ||
+             !['digital','physical','both'].includes(c.requested_format) ||
+             typeof c.portrait_registered !== 'boolean' ||
+             !/^[MF]-PDC-I-[0-9]{6}$/.test(c.member_number || '')))) {
+        throw new AdminApiError(503, 'CARD_QUEUE_BAD_RESPONSE');
+      }
+      if (path === '/v1/admin/reviews' && (!Array.isArray(result.batches) || result.batches.length>20)) {
+        throw new AdminApiError(503, 'REVIEW_BAD_RESPONSE');
+      }
+      if (path.startsWith('/v1/admin/reviews/') &&
+          (!Array.isArray(result.members) || result.members.length>50 || result.pageSize!==50)) {
+        throw new AdminApiError(503, 'REVIEW_BAD_RESPONSE');
       }
       return result;
     },
