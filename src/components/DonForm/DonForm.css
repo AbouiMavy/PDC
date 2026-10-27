@@ -60,3 +60,26 @@
 .pdc-don-form__telephone input.pdc-don-form__indicatif-manuel{border-radius:8px 0 0 8px;min-width:65px;max-width:85px;flex:0 0 85px;background:#eaf3eb}
 .pdc-don-form__montants .pdc-don-form__montant{min-height:54px}
 @media (max-width:650px){.pdc-don-form__montants{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pdc-don-form__montant{padding:11px 3px;font-size:.78rem;line-height:1.25}.pdc-don-form__montant:not(.pdc-don-form__montant-libre){flex-direction:column;gap:4px}}
+
+/* V5-B — Correction largeur des dates sur Safari iOS. */
+@supports (-webkit-touch-callout: none) {
+  .pdc-don-form__field input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 44px;
+    margin: 0;
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .pdc-don-form__field input[type="date"]::-webkit-date-and-time-value {
+    margin: 0;
+    min-height: 1.2em;
+    text-align: left;
+  }
+}
