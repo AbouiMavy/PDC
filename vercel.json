@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/histoire", "destination": "/index.html" },
+    { "source": "/adhesion", "destination": "/index.html" },
+    { "source": "/adhesion/merci", "destination": "/index.html" },
+    { "source": "/soutenir", "destination": "/index.html" },
+    { "source": "/soutenir/merci", "destination": "/index.html" },
+    { "source": "/mon-espace", "destination": "/index.html" }
+  ]
+}
