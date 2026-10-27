@@ -25,7 +25,8 @@
 .pdc-adhesion-radio{display:flex;gap:12px;flex-wrap:wrap}.pdc-adhesion-radio label,.pdc-adhesion-check{display:flex;gap:9px;align-items:center;cursor:pointer;padding:9px 12px;border:1px solid #dce9de;border-radius:6px;line-height:1.45}.pdc-adhesion-radio-column{flex-direction:column;align-items:flex-start}.pdc-adhesion-radio-column label{width:100%}
 .pdc-adhesion-form input[type=checkbox],.pdc-adhesion-form input[type=radio]{accent-color:#0d5931;width:16px;height:16px;flex-shrink:0}
 .pdc-adhesion-check{margin:12px 0;background:#f7faf7}
-.pdc-adhesion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pdc-adhesion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;row-gap:18px;align-items:start;margin:14px 0}
+.pdc-adhesion-grid > .pdc-adhesion-field{margin:0}
 .pdc-adhesion-field{display:flex;flex-direction:column;gap:6px;margin:12px 0;min-width:0}.pdc-adhesion-field label{font-weight:750;font-size:.92rem}.pdc-adhesion-field input,.pdc-adhesion-field select{border:1px solid #b6c9bb;border-radius:5px;padding:12px 11px;color:#253b2d;background:#fff;min-width:0;width:100%;font-family:inherit;min-height:44px}
 .pdc-adhesion-field input:disabled,.pdc-adhesion-field select:disabled{background:#f1f2f0;color:#7a8a7f}
 .pdc-adhesion-field small,.pdc-adhesion-card small{font-size:.78rem;line-height:1.55;color:#607366}
@@ -74,3 +75,11 @@
 @media (max-width:640px) {
   .pdc-adhesion-inline-help { margin: 0 0 12px; }
 }
+
+/* V5-B.6.1 — demandes facultatives de carte et prévisualisation locale des photos. */
+.pdc-adhesion-wide { grid-column: 1 / -1; }
+.pdc-adhesion-photo-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.pdc-adhesion-portrait { width: 112px; height: 138px; object-fit: cover; border: 2px solid #0d5931; border-radius: 5px; margin-top: 8px; }
+.pdc-adhesion-muted { color:#536b58; font-size:.9rem; line-height:1.6; }
+.pdc-adhesion-field input[type="file"] { max-width:100%; font-size:.9rem; }
+@media(max-width:640px) { .pdc-adhesion-photo-grid { grid-template-columns: 1fr; } }

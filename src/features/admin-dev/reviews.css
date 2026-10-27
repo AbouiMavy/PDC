@@ -1,0 +1,5 @@
+.pdc-review-table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0;white-space:nowrap}
+.pdc-review-table th,.pdc-review-table td{padding:.7rem .65rem;text-align:left;border-bottom:1px solid #d6e5d9}
+.pdc-review-table th{background:#f2f8f3;color:#23583a;font-weight:700}
+.pdc-review-table tbody tr:hover{background:#f8fbf9}
+.pdc-review-table td button{white-space:nowrap}

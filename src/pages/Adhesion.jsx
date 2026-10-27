@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PAYS } from '../components/DonForm/pays';
@@ -8,6 +8,9 @@ import { getAdhesionText } from '../features/adhesion/textes';
 import { communesPourDepartement } from '../features/adhesion/communes-cm';
 import { calculPremiereAdhesionCM, calculDiaspora, CAMEROUN, DIASPORA } from '../features/adhesion/tarifs.mjs';
 import { PROFESSIONS } from '../features/adhesion/professions.js';
+import { validateCardSelection, validatePhoto } from '../features/adhesion/carte.mjs';
+import { prefixForCivilite } from '../features/adhesion/civilite.mjs';
+import { preparePortraitUploadIntent } from '../features/adhesion/portrait-upload-intent-v5b610e.mjs';
 import './Adhesion.css';
 
 const FICHIERS = [
@@ -16,12 +19,13 @@ const FICHIERS = [
   '/documents/adhesion/decision-cotisations-pdc.pdf',
 ];
 const defaultValues = {
-  type:'nouvelle',pays:'CM',civilite:'',nom:'',prenom:'',dateNaissance:'',profession:'',
+  type:'nouvelle',pays:'CM',civilite:'',nom:'',prenom:'',dateNaissance:'',lieuNaissance:'',profession:'',
   email:'',telephone:'',region:'',departement:'',commune:'',communeAutre:'',
   regionEtrangere:'',departementEtranger:'',ville:'',codePostal:'',
   rattachementRegion:'',rattachementDepartement:'',rattachementCommune:'',rattachementAutre:'',
   categorie:'rural_etudiant',modeCotisation:'aucun',versementPartiel:'',formule:'simple',
-  nomPartenaire:'',prenomPartenaire:'',emailPartenaire:'',telephonePartenaire:'',consentPartenaire:false,
+  nomPartenaire:'',prenomPartenaire:'',civilitePartenaire:'',dateNaissancePartenaire:'',lieuNaissancePartenaire:'',emailPartenaire:'',telephonePartenaire:'',consentPartenaire:false,
+  demandeCarte:false,formatCarte:'numerique',
   numeroMilitant:'',accepteStatuts:false,accepteDonnees:false,
 };
 const today = () => {
@@ -52,6 +56,23 @@ export default function Adhesion() {
   const [expanded,setExpanded]=useState(false);
   const [form,setForm]=useState(defaultValues);
   const [error,setError]=useState('');
+  // Uniquement en mémoire, aucune transmission ni persistance dans cette prévisualisation.
+  const [photoMembre,setPhotoMembre]=useState(null);
+  const [photoPartenaire,setPhotoPartenaire]=useState(null);
+  const [portraitMembre,setPortraitMembre]=useState('');
+  const [portraitPartenaire,setPortraitPartenaire]=useState('');
+  useEffect(()=>{
+    if (!photoMembre) {setPortraitMembre(''); return;}
+    const url=URL.createObjectURL(photoMembre);
+    setPortraitMembre(url);
+    return ()=>URL.revokeObjectURL(url);
+  },[photoMembre]);
+  useEffect(()=>{
+    if (!photoPartenaire) {setPortraitPartenaire(''); return;}
+    const url=URL.createObjectURL(photoPartenaire);
+    setPortraitPartenaire(url);
+    return ()=>URL.revokeObjectURL(url);
+  },[photoPartenaire]);
   const update=(key,value)=>{setForm(old=>({...old,[key]:value}));setError('');};
   const countryNames=useMemo(()=>new Intl.DisplayNames([lang],{type:'region'}),[lang]);
   const countries=useMemo(()=>[...PAYS].sort((a,b)=>((lang==='en'?countryNames.of(a.code):a.nom)||'').localeCompare((lang==='en'?countryNames.of(b.code):b.nom)||'',lang)),[lang,countryNames]);
@@ -81,7 +102,10 @@ export default function Adhesion() {
       if(!form.numeroMilitant.trim() || !validEmail(form.email))return setError(t.errors.required);
       return next(3);
     }
-    if(!form.civilite || !form.nom.trim() || !form.prenom.trim() || !validDOB(form.dateNaissance))return setError(t.errors.dob);
+    if(!prefixForCivilite(form.civilite))return setError(t.errors.civility);
+    if(!form.nom.trim() || !form.prenom.trim() || !validDOB(form.dateNaissance))return setError(t.errors.dob);
+    if(!form.lieuNaissance.trim())return setError(t.errors.birthplace);
+
     if(!validEmail(form.email))return setError(t.errors.email);
     if(!validatePhone(form.telephone,form.pays))return setError(t.errors.phone);
     if(domestic && (!form.region || !form.departement || !commune))return setError(t.errors.territory);
@@ -89,7 +113,19 @@ export default function Adhesion() {
     if(!domestic && !form.codePostal.trim())return setError(t.errors.postcode);
     if(!domestic && (!form.rattachementRegion || !form.rattachementDepartement || !rattachementCommune))return setError(t.errors.rattachement);
     if(!amounts)return setError(t.errors.partial);
-    if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire))return setError(t.errors.partner);
+    if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validDOB(form.dateNaissancePartenaire) || !form.lieuNaissancePartenaire.trim() || !prefixForCivilite(form.civilitePartenaire) || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire))return setError(t.errors.partner);
+    const photoError=validateCardSelection({requestCard:form.demandeCarte,isCouple:!domestic&&form.formule==='couple',photoMember:photoMembre,photoPartner:photoPartenaire});
+    if(photoError)return setError(t.errors[photoError] || t.errors.photo);
+    // Préparation locale, sans téléversement ni appel réseau tant que le paiement
+    // et les autorisations individuelles ne sont pas raccordés côté serveur.
+    try {
+      preparePortraitUploadIntent({
+        requestCard:form.demandeCarte,
+        isCouple:!domestic&&form.formule==='couple',
+        photoMember:photoMembre,
+        photoPartner:photoPartenaire,
+      });
+    } catch { return setError(t.errors.photo); }
     next(3);
   }
   return <main className="pdc-adhesion">
@@ -114,7 +150,6 @@ export default function Adhesion() {
         <fieldset><legend>{t.type}</legend><div className="pdc-adhesion-radio">
           {[['nouvelle',t.first],['renouvellement',t.renew]].map(([val,label])=><label key={val}><input type="radio" name="type" value={val} checked={form.type===val} onChange={()=>update('type',val)}/> {label}</label>)}
         </div></fieldset>
-        {isNew && <div className="pdc-adhesion-field"><label htmlFor="a-country">{t.country}</label><select id="a-country" value={form.pays} onChange={e=>switchCountry(e.target.value)} required>{countries.map(x=><option key={x.code} value={x.code}>{lang==='en'?countryNames.of(x.code)||x.nom:x.nom}</option>)}</select><small>{t.currencyNote}</small></div>}
         {!isNew ? <div className="pdc-adhesion-panel">
           <p>{t.renewHint}</p>
           <div className="pdc-adhesion-grid">
@@ -129,6 +164,10 @@ export default function Adhesion() {
             <div className="pdc-adhesion-field"><label htmlFor="a-last">{t.last}</label><input id="a-last" autoComplete="family-name" value={form.nom} onChange={e=>update('nom',e.target.value)} required maxLength={100}/></div>
             <div className="pdc-adhesion-field"><label htmlFor="a-first">{t.firstName}</label><input id="a-first" autoComplete="given-name" value={form.prenom} onChange={e=>update('prenom',e.target.value)} required maxLength={100}/></div>
             <div className="pdc-adhesion-field"><label htmlFor="a-dob">{t.dob}</label><input id="a-dob" type="date" value={form.dateNaissance} onChange={e=>update('dateNaissance',e.target.value)} max={today()} required/></div>
+            <div className="pdc-adhesion-field"><label htmlFor="a-birthplace">{t.birthplace}</label><input id="a-birthplace" autoComplete="off" value={form.lieuNaissance} onChange={e=>update('lieuNaissance',e.target.value)} required maxLength={160}/></div>
+          </div>
+          <div className="pdc-adhesion-grid">
+            <div className="pdc-adhesion-field"><label htmlFor="a-country">{t.country}</label><select id="a-country" value={form.pays} onChange={e=>switchCountry(e.target.value)} required>{countries.map(x=><option key={x.code} value={x.code}>{lang==='en'?countryNames.of(x.code)||x.nom:x.nom}</option>)}</select><small>{t.currencyNote}</small></div>
             <div className="pdc-adhesion-field"><label htmlFor="a-job">{t.profession}</label><select id="a-job" value={form.profession} onChange={e=>update('profession',e.target.value)}><option value="">{t.choose}</option>{PROFESSIONS.map(p=><option key={p} value={p}>{t.professions[p]}</option>)}</select></div>
           </div>
           <div className="pdc-adhesion-grid">
@@ -191,16 +230,46 @@ export default function Adhesion() {
           </>:<>
             <p className="pdc-adhesion-section-intro">{t.diasporaRatesIntro}</p>
             <fieldset className="pdc-adhesion-plans"><legend>{t.diasporaRate}</legend><div className="pdc-adhesion-choice-grid">
-              {Object.keys(DIASPORA).map(k=><label key={k} className={`pdc-adhesion-choice ${form.formule===k?'selected':''}`}><input type="radio" name="formule" value={k} checked={form.formule===k} onChange={()=>update('formule',k)}/><span className="pdc-adhesion-choice-label">{t.diasporaRates[k]}</span><strong>{money(DIASPORA[k],'EUR')}</strong></label>)}
+              {Object.keys(DIASPORA).map(k=><label key={k} className={`pdc-adhesion-choice ${form.formule===k?'selected':''}`}><input type="radio" name="formule" value={k} checked={form.formule===k} onChange={()=>{update('formule',k);if(k!=='couple')setPhotoPartenaire(null);}}/><span className="pdc-adhesion-choice-label">{t.diasporaRates[k]}</span><strong>{money(DIASPORA[k],'EUR')}</strong></label>)}
             </div></fieldset>
             <small>{t.diasporaHint}</small>
-            {form.formule==='couple' && <div className="pdc-adhesion-panel"><h3>{t.partner}</h3><div className="pdc-adhesion-grid">
+            {form.formule==='couple' && <div className="pdc-adhesion-panel"><h3>{t.partner}</h3>
+              <fieldset><legend>{t.partnerCivility}</legend><div className="pdc-adhesion-radio">{[['Madame',t.ms],['Monsieur',t.mr]].map(([v,label])=><label key={v}><input type="radio" name="civilitePartenaire" checked={form.civilitePartenaire===v} onChange={()=>update('civilitePartenaire',v)} required/>{label}</label>)}</div></fieldset>
+              <div className="pdc-adhesion-grid">
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-last">{t.partnerLast}</label><input id="a-partner-last" required value={form.nomPartenaire} onChange={e=>update('nomPartenaire',e.target.value)}/></div>
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-first">{t.partnerFirst}</label><input id="a-partner-first" required value={form.prenomPartenaire} onChange={e=>update('prenomPartenaire',e.target.value)}/></div>
+              <div className="pdc-adhesion-field"><label htmlFor="a-partner-dob">{t.partnerDob}</label><input id="a-partner-dob" type="date" max={today()} required value={form.dateNaissancePartenaire} onChange={e=>update('dateNaissancePartenaire',e.target.value)}/></div>
+              <div className="pdc-adhesion-field"><label htmlFor="a-partner-birthplace">{t.partnerBirthplace}</label><input id="a-partner-birthplace" required maxLength={160} value={form.lieuNaissancePartenaire} onChange={e=>update('lieuNaissancePartenaire',e.target.value)}/></div>
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-email">{t.partnerEmail}</label><input id="a-partner-email" type="email" required value={form.emailPartenaire} onChange={e=>update('emailPartenaire',e.target.value)}/></div>
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-phone">{t.partnerPhone}</label><div className="pdc-adhesion-phone"><span>{INDICATIFS[form.pays]||'+'}</span><input id="a-partner-phone" type="tel" inputMode="tel" required maxLength={24} value={form.telephonePartenaire} onChange={e=>update('telephonePartenaire',e.target.value)}/></div></div>
             </div><label className="pdc-adhesion-check"><input type="checkbox" checked={form.consentPartenaire} onChange={e=>update('consentPartenaire',e.target.checked)} /> {t.partnerConsent}</label></div>}
           </>}
+          <h2>{t.cardSection}</h2>
+          <label className="pdc-adhesion-check"><input type="checkbox" checked={form.demandeCarte} onChange={e=>{
+            update('demandeCarte',e.target.checked);
+            if(!e.target.checked){setPhotoMembre(null);setPhotoPartenaire(null);}
+          }}/>{t.cardRequest}</label>
+          {!form.demandeCarte && <p className="pdc-adhesion-muted">{t.cardOptional}</p>}
+          {form.demandeCarte && <div className="pdc-adhesion-panel">
+            <fieldset><legend>{t.cardFormat}</legend><div className="pdc-adhesion-radio">
+              {['numerique','physique','les_deux'].map(k=><label key={k}><input type="radio" name="formatCarte" checked={form.formatCarte===k} onChange={()=>update('formatCarte',k)}/>{t.cardFormats[k]}</label>)}
+            </div></fieldset>
+            <p className="pdc-adhesion-muted">{t.photoInfo}</p>
+            <div className="pdc-adhesion-photo-grid">
+              <div className="pdc-adhesion-field">
+                <label htmlFor="a-photo-member">{t.photoMember}</label>
+                <input id="a-photo-member" type="file" accept="image/jpeg,image/png" required={!photoMembre} onChange={e=>{const f=e.target.files?.[0]||null;const err=f&&validatePhoto(f);setPhotoMembre(err?null:f);setError(err?t.errors[err]:'');}}/>
+                {portraitMembre && <img className="pdc-adhesion-portrait" src={portraitMembre} alt={t.photoMemberAlt}/>}
+              </div>
+              {!domestic&&form.formule==='couple' && <div className="pdc-adhesion-field">
+                <label htmlFor="a-photo-partner">{t.photoPartner}</label>
+                <input id="a-photo-partner" type="file" accept="image/jpeg,image/png" required={!photoPartenaire} onChange={e=>{const f=e.target.files?.[0]||null;const err=f&&validatePhoto(f);setPhotoPartenaire(err?null:f);setError(err?t.errors[err]:'');}}/>
+                {portraitPartenaire && <img className="pdc-adhesion-portrait" src={portraitPartenaire} alt={t.photoPartnerAlt}/>}
+              </div>}
+            </div>
+            {!domestic&&form.formule==='couple' && <p className="pdc-adhesion-muted">{t.couplePhotosInfo}</p>}
+            <p className="pdc-adhesion-alert">{t.photoStorageWarning}</p>
+          </div>}
           {amounts && <div className="pdc-adhesion-amounts" aria-live="polite">
             {domestic && <><div><span>{t.initial}</span><strong>{money(amounts.fraisAdhesion,'XAF')}</strong></div><div><span>{t.paidNow}</span><strong>{money(amounts.versementCotisation,'XAF')}</strong></div></>}
             <div className="total"><span>{t.currentPayment}</span><strong>{money(amounts.totalImmediate,amounts.devise)}</strong></div>
@@ -208,6 +277,7 @@ export default function Adhesion() {
           </div>}
           {amountError && <p className="pdc-adhesion-error" role="alert">{t.errors.partial}</p>}
         </>}
+        {isNew && <p className="pdc-adhesion-fee-note">{t.membershipLegal}</p>}
         <h2>{t.memberStatements}</h2>
         <div className="pdc-adhesion-documents small">{FICHIERS.map((url,i)=><a key={url} href={url} target="_blank" rel="noreferrer">{t.docs[i]} ↗</a>)}</div>
         <p className="pdc-adhesion-alert">{t.termsMissing}</p>
@@ -222,8 +292,14 @@ export default function Adhesion() {
       <h1>{t.reviewTitle}</h1><dl>
         <div><dt>{t.mode}</dt><dd>{isNew?t.first:t.renew}</dd></div>
         {isNew ? <>
-          <div><dt>{t.person}</dt><dd>{form.prenom} {form.nom}</dd></div>
-          {!domestic&&form.formule==='couple'&&<div><dt>{t.partnerName}</dt><dd>{form.prenomPartenaire} {form.nomPartenaire}</dd></div>}
+          <div><dt>{t.person}</dt><dd>{form.civilite==='Madame'?t.ms:t.mr} {form.prenom} {form.nom}</dd></div>
+          <div><dt>{t.dob}</dt><dd>{form.dateNaissance}</dd></div>
+          <div><dt>{t.birthplace}</dt><dd>{form.lieuNaissance}</dd></div>
+          {!domestic&&form.formule==='couple'&&<>
+            <div><dt>{t.partnerName}</dt><dd>{form.civilitePartenaire==='Madame'?t.ms:t.mr} {form.prenomPartenaire} {form.nomPartenaire}</dd></div>
+            <div><dt>{t.partnerDob}</dt><dd>{form.dateNaissancePartenaire}</dd></div>
+            <div><dt>{t.partnerBirthplace}</dt><dd>{form.lieuNaissancePartenaire}</dd></div>
+          </>}
           <div><dt>{t.country}</dt><dd>{lang==='en'?countryNames.of(form.pays):PAYS.find(x=>x.code===form.pays)?.nom}</dd></div>
           {!domestic&&form.formule==='couple'&&<div><dt>{t.partnerPhone}</dt><dd>{INDICATIFS[form.pays]} {form.telephonePartenaire}</dd></div>}
           <div><dt>{t.profession}</dt><dd>{t.professions[form.profession]||'—'}</dd></div>
@@ -231,10 +307,18 @@ export default function Adhesion() {
           {!domestic&&<div><dt>{t.territorial}</dt><dd>{[form.rattachementRegion,form.rattachementDepartement,rattachementCommune].join(' / ')}</dd></div>}
           <div><dt>{t.email}</dt><dd>{form.email}</dd></div>
           {!domestic&&<div><dt>{t.postcode}</dt><dd>{form.codePostal}</dd></div>}
+          <div><dt>{t.cardSection}</dt><dd>{form.demandeCarte?t.cardFormats[form.formatCarte]:t.noCardRequested}</dd></div>
+          {form.demandeCarte && <div><dt>{t.photoMember}</dt><dd>{photoMembre?.name||t.noPhoto}</dd></div>}
+          {form.demandeCarte&&!domestic&&form.formule==='couple'&&<div><dt>{t.photoPartner}</dt><dd>{photoPartenaire?.name||t.noPhoto}</dd></div>}
           <div><dt>{t.currentPayment}</dt><dd><strong>{money(amounts?.totalImmediate||0,amounts?.devise)}</strong></dd></div>
           {domestic&&<div><dt>{t.remaining}</dt><dd>{money(amounts?.resteAnnuel||0,'XAF')}</dd></div>}
         </> : <><div><dt>{t.uniqueId}</dt><dd>{form.numeroMilitant}</dd></div><div><dt>{t.email}</dt><dd>{form.email}</dd></div><div><dt>{t.remaining}</dt><dd>{t.remainderUnavailable}</dd></div></>}
       </dl>
+      {isNew && form.demandeCarte && <p className="pdc-adhesion-alert" role="status">
+        {lang==='en'
+          ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
+          : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
+      </p>}
       <p className="pdc-adhesion-alert">{t.noPayment}</p>
       <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button><button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button></div>
     </section>}
