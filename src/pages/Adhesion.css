@@ -83,3 +83,26 @@
 .pdc-adhesion-muted { color:#536b58; font-size:.9rem; line-height:1.6; }
 .pdc-adhesion-field input[type="file"] { max-width:100%; font-size:.9rem; }
 @media(max-width:640px) { .pdc-adhesion-photo-grid { grid-template-columns: 1fr; } }
+
+/* V5-B — Correction largeur des dates sur Safari iOS. */
+@supports (-webkit-touch-callout: none) {
+  .pdc-adhesion-field input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    margin: 0;
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .pdc-adhesion-field input[type="date"]::-webkit-date-and-time-value {
+    margin: 0;
+    min-height: 1.2em;
+    text-align: left;
+  }
+}
