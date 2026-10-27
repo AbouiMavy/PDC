@@ -1,97 +1,65 @@
-// V5-C — depot Postgres DEV, non branche au backend readonly.
-// Le role pdc_tara_v5c_writer n'est PAS cree/grante par la migration ;
-// son provisionnement fera l'objet d'un audit et d'une autorisation distincts.
+// V5-C lot IV — dépôt PostgreSQL limité à 7 passerelles RPC SECURITY DEFINER.
+// Jamais de DML direct sur les tables privées : le compte writer n'y a aucun droit.
 import { V5CError } from './contracts.mjs';
 const fail=code=>{throw new V5CError(code);};
 const ROLE='pdc_tara_v5c_writer';
+const validBool=r=> r?.rows?.length===1 && typeof r.rows[0]?.ok==='boolean';
 
 export async function makeTaraDevPgRepository({pool,enabled=false,
   environment='disabled',expectedRole=ROLE}={}) {
   if(enabled!==true || environment!=='sandbox' || expectedRole!==ROLE ||
-     !pool || typeof pool.query!=='function' || typeof pool.connect!=='function')
-    fail('PDC_TARA_PG_DISABLED');
-  // Si le pool dispose de droits postgres ou service_role, RIEN ne passe.
-  let result;
-  try {result=await pool.query('SELECT current_user AS role_name');}
+     !pool || typeof pool.query!=='function') fail('PDC_TARA_PG_DISABLED');
+  let role;
+  try {role=await pool.query('SELECT current_user AS role_name');}
   catch {fail('PDC_TARA_PG_ROLE_UNKNOWN');}
-  if (result?.rows?.[0]?.role_name!==ROLE) fail('PDC_TARA_PG_WRONG_ROLE');
-
-  async function reserveCheckout(input) {
-    let connection;
-    try {
-      connection=await pool.connect();
-      await connection.query('BEGIN');
-      await connection.query(`
-        INSERT INTO pdc_private.tara_checkout_intents_v5c
-          (product_id,payment_id,quote_id,payer_id,idempotency_key,amount_xaf,currency)
-        VALUES ($1,$2::uuid,$3::uuid,$4::uuid,$5,$6::bigint,'XAF')
-        ON CONFLICT (idempotency_key) DO NOTHING`,
-        [input.productId,input.paymentId,input.quoteId,input.payerId,
-         input.idempotencyKey,input.amountXaf]);
-      const result=await connection.query(`
-        SELECT product_id AS "productId", payment_id::text AS "paymentId",
-          quote_id::text AS "quoteId",payer_id::text AS "payerId",
-          idempotency_key AS "idempotencyKey",amount_xaf::text AS "amountXaf",
-          currency,link_state AS "linkState",general_link AS "generalLink"
-        FROM pdc_private.tara_checkout_intents_v5c
-        WHERE idempotency_key=$1 FOR UPDATE`,[input.idempotencyKey]);
-      if(result.rows?.length!==1) fail('PDC_TARA_DB_RESERVE_INVALID');
-      await connection.query('COMMIT');
-      return result.rows[0];
-    } catch {
-      if(connection) try {await connection.query('ROLLBACK');} catch { /* fail closed */ }
-      fail('PDC_TARA_DB_RESERVE_FAILED');
-    } finally { if(connection) connection.release(); }
+  if(role?.rows?.[0]?.role_name!==ROLE) fail('PDC_TARA_PG_WRONG_ROLE');
+  // L'identité de connexion est vérifiée au démarrage. Aucun secret n'est journalisé.
+  async function query(sql,params){
+    try {return await pool.query(sql,params);} catch {fail('PDC_TARA_DB_OPERATION_FAILED');}
   }
-  async function claimLinkRequest(productId) {
-    const r=await pool.query(`
-      UPDATE pdc_private.tara_checkout_intents_v5c
-        SET link_state='requested',requested_at=pg_catalog.now()
-      WHERE product_id=$1 AND link_state='reserved'
-      RETURNING product_id`,[productId]);
-    return r.rowCount===1;
+  async function rpcBool(sql,params){
+    const r=await query(sql,params);
+    if(!validBool(r)) fail('PDC_TARA_DB_RESPONSE_INVALID');
+    return r.rows[0].ok;
   }
-  async function saveIssuedLink(productId,generalLink) {
-    const r=await pool.query(`
-      UPDATE pdc_private.tara_checkout_intents_v5c
-        SET link_state='issued',general_link=$2
-      WHERE product_id=$1 AND link_state='requested'
-      RETURNING product_id`,[productId,generalLink]);
-    if(r.rowCount!==1) fail('PDC_TARA_DB_LINK_STATE_CHANGED');
+  async function reserveCheckout(input){
+    if (!input || typeof input!=='object') fail('PDC_TARA_DB_RESERVE_INVALID');
+    const r=await query(`SELECT * FROM pdc_private.tara_v5c_reserve_intent(
+      $1::text,$2::uuid,$3::uuid,$4::uuid,$5::text,$6::bigint)`,
+      [input.productId,input.paymentId,input.quoteId,input.payerId,
+       input.idempotencyKey,input.amountXaf]);
+    if(r?.rows?.length!==1 || !r.rows[0]) fail('PDC_TARA_DB_RESERVE_INVALID');
+    return r.rows[0];
   }
-  async function markLinkUnknown(productId) {
-    const r=await pool.query(`
-      UPDATE pdc_private.tara_checkout_intents_v5c SET link_state='unknown'
-      WHERE product_id=$1 AND link_state='requested' RETURNING product_id`,[productId]);
-    return r.rowCount===1;
+  async function claimLinkRequest(productId){
+    return rpcBool('SELECT pdc_private.tara_v5c_claim_link($1::text) AS ok',[productId]);
   }
-  async function insertUntrustedWebhookOnce(hint) {
+  async function saveIssuedLink(productId,generalLink){
+    if(await rpcBool('SELECT pdc_private.tara_v5c_save_issued_link($1::text,$2::text) AS ok',
+      [productId,generalLink])!==true) fail('PDC_TARA_DB_LINK_STATE_CHANGED');
+  }
+  async function markLinkUnknown(productId){
+    return rpcBool('SELECT pdc_private.tara_v5c_mark_unknown($1::text) AS ok',[productId]);
+  }
+  async function insertUntrustedWebhookOnce(hint){
     if(hint?.trusted!==false || hint.verification!=='required')
       fail('PDC_TARA_WEBHOOK_NOT_UNTRUSTED');
-    const r=await pool.query(`
-      INSERT INTO pdc_private.tara_webhook_inbox_v5c
-        (fingerprint,product_id,provider_payment_id,amount_claimed_xaf,status_claimed,untrusted)
-      VALUES ($1,$2,$3,$4::bigint,$5,true)
-      ON CONFLICT (fingerprint) DO NOTHING`,
+    return rpcBool(`SELECT pdc_private.tara_v5c_record_hint(
+      $1::text,$2::text,$3::text,$4::bigint,$5::text) AS ok`,
       [hint.eventId,hint.productId,hint.paymentId,hint.amount,hint.status]);
-    return r.rowCount===1;
   }
-  async function loadCheckout(productId) {
-    const r=await pool.query(`
-      SELECT product_id AS "productId", amount_xaf::text AS "amountXaf",
-             currency,link_state AS "linkState"
-      FROM pdc_private.tara_checkout_intents_v5c WHERE product_id=$1`,[productId]);
-    return r.rows?.[0]??null;
+  async function loadCheckout(productId){
+    const r=await query('SELECT * FROM pdc_private.tara_v5c_load_checkout($1::text)',[productId]);
+    if(!Array.isArray(r?.rows)||r.rows.length>1)fail('PDC_TARA_DB_RESPONSE_INVALID');
+    return r.rows[0]??null;
   }
-  async function recordEvidence(input) {
+  async function recordEvidence(input){
     if (!['corroborated','not_verified','manual_review'].includes(input?.decision))
       fail('PDC_TARA_EVIDENCE_INVALID');
-    const r=await pool.query(`
-      INSERT INTO pdc_private.tara_reconciliation_evidence_v5c
-       (product_id,decision,reason,expected_amount_xaf,payment_channel)
-      VALUES ($1,$2,$3,$4::bigint,$5)`,
-      [input.productId,input.decision,input.reason,input.expectedAmountXaf,input.paymentChannel]);
-    if(r.rowCount!==1) fail('PDC_TARA_EVIDENCE_NOT_STORED');
+    if(await rpcBool(`SELECT pdc_private.tara_v5c_record_evidence(
+      $1::text,$2::text,$3::text,$4::bigint,$5::text) AS ok`,
+      [input.productId,input.decision,input.reason,input.expectedAmountXaf,
+       input.paymentChannel])!==true)fail('PDC_TARA_EVIDENCE_NOT_STORED');
   }
   return Object.freeze({reserveCheckout,claimLinkRequest,saveIssuedLink,
     markLinkUnknown,insertUntrustedWebhookOnce,loadCheckout,recordEvidence});

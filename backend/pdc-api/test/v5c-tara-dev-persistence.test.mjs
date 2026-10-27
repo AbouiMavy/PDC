@@ -168,31 +168,26 @@ test('aucune route HTTP, aucun secret ou acces navigateur ajoute',()=>{
   }
 });
 
-test('depot SQL DEV accepte seulement un role specifique, prepare et lie les parametres',async()=>{
+test('dépôt SQL DEV ne dispose que de la RPC de réservation paramétrée',async()=>{
   const calls=[];
   const row={productId:'PDC_'+ 'a'.repeat(24),paymentId:U1,quoteId:U2,payerId:U3,
     idempotencyKey:'safe-idempotency-0000001',amountXaf:'2000',currency:'XAF',
     linkState:'reserved',generalLink:null};
-  const connection={
-    query:async(sql,params=[])=>{
-      calls.push({sql,params});
-      if(sql.includes('SELECT product_id AS "productId"'))return {rows:[row]};
-      return {rowCount:1};
-    },
-    release:()=>{calls.push({sql:'RELEASE'});},
-  };
-  const pool={query:async()=>({rows:[{role_name:'pdc_tara_v5c_writer'}]}),
-    connect:async()=>connection};
-  const r=await makeTaraDevPgRepository({pool,enabled:true,environment:'sandbox'});
-  const stored=await r.reserveCheckout({productId:row.productId,paymentId:U1,
+  const pool={query:async(sql,params=[])=>{
+    calls.push({sql,params});
+    if(sql.startsWith('SELECT current_user'))return {rows:[{role_name:'pdc_tara_v5c_writer'}]};
+    if(sql.includes('tara_v5c_reserve_intent'))return {rows:[row]};
+    throw Error('unexpected');
+  }};
+  const repository=await makeTaraDevPgRepository({pool,enabled:true,environment:'sandbox'});
+  const stored=await repository.reserveCheckout({productId:row.productId,paymentId:U1,
     quoteId:U2,payerId:U3,idempotencyKey:row.idempotencyKey,amountXaf:'2000'});
   assert.equal(stored.productId,row.productId);
-  assert.deepEqual(calls.filter(x=>x.sql==='BEGIN').length,1);
-  assert.deepEqual(calls.filter(x=>x.sql==='COMMIT').length,1);
-  const insert=calls.find(x=>x.sql.includes('INSERT INTO pdc_private.tara_checkout_intents_v5c'));
-  assert.match(insert.sql,/ON CONFLICT \(idempotency_key\) DO NOTHING/);
-  assert.deepEqual(insert.params,[row.productId,U1,U2,U3,row.idempotencyKey,'2000']);
-  assert.doesNotMatch(insert.sql,/safe-idempotency-0000001/);
+  assert.equal(calls.length,2);
+  assert.match(calls[1].sql,/SELECT \* FROM pdc_private\.tara_v5c_reserve_intent/);
+  assert.deepEqual(calls[1].params,[row.productId,U1,U2,U3,row.idempotencyKey,'2000']);
+  assert.doesNotMatch(calls[1].sql,/INSERT|UPDATE|DELETE|COMMIT|BEGIN/);
+  assert.doesNotMatch(calls[1].sql,/safe-idempotency-0000001/);
 });
 
 test('reception webhook ne peut pas prendre une preuve comme verified=true',async()=>{
@@ -206,14 +201,14 @@ test('reception webhook ne peut pas prendre une preuve comme verified=true',asyn
   assert.equal(called,false);
 });
 
-test('verification relevee dans evidence n ecrit aucune table de paiement',async()=>{
+test('evidence transmise uniquement à RPC, aucune écriture directe de paiement',async()=>{
   let sqlCaptured='';
   const pool={query:async(sql)=>{
     if(sql.startsWith('SELECT current_user')) return {rows:[{role_name:'pdc_tara_v5c_writer'}]};
-    sqlCaptured=sql;return {rowCount:1};}, connect:async()=>({})};
+    sqlCaptured=sql;return {rows:[{ok:true}]};}};
   const r=await makeTaraDevPgRepository({pool,enabled:true,environment:'sandbox'});
   await r.recordEvidence({productId:'PDC_'+'a'.repeat(24),decision:'corroborated',
     reason:null,expectedAmountXaf:'2000',paymentChannel:'mobile'});
-  assert.match(sqlCaptured,/INSERT INTO pdc_private\.tara_reconciliation_evidence_v5c/);
+  assert.match(sqlCaptured,/SELECT pdc_private\.tara_v5c_record_evidence/);
   assert.doesNotMatch(sqlCaptured,/UPDATE pdc_private\.payment_attempts|INSERT INTO pdc_private\.payment_events/);
 });
