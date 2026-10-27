@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>PDC — Cartes numériques | Atelier de développement</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#202c28;background:#edf3ee}*{box-sizing:border-box}
+body{margin:0}header{background:#007e42;color:#fff;padding:20px 5vw;border-bottom:8px solid #e9b520}
+header h1{font-size:24px;margin:0 0 5px}header p{margin:0;opacity:.92}
+main{max-width:1340px;margin:24px auto;padding:0 18px 36px}
+.warning{background:#fff3d1;border:1px solid #e5c14c;padding:14px 17px;border-radius:10px;line-height:1.5;font-size:14px;margin-bottom:18px}
+.panel{background:white;border:1px solid #dbe4dd;border-radius:14px;padding:20px;box-shadow:0 4px 18px #1a543310;margin-bottom:16px}
+.panel h2{font-size:19px;margin:0 0 16px;color:#0b7341}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.field{display:flex;flex-direction:column;gap:6px}label{font-size:13px;font-weight:700}
+input,select{width:100%;padding:10px 12px;border:1px solid #c1cfc4;border-radius:7px;font-size:15px;background:white;color:#17211b}
+small{color:#5c6d63;line-height:1.4}button{background:#007d45;border:0;color:#fff;border-radius:8px;padding:12px 15px;font-weight:700;cursor:pointer}button[disabled]{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.error{color:#a32120;font-weight:700;min-height:1.3em}
+.cardgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.cardgrid figure{margin:0}.cardgrid h3{font-size:17px;color:#1a4930;margin:0 0 9px}
+canvas{width:100%;height:auto;border-radius:5px;box-shadow:0 8px 22px #243d3d35;display:block;aspect-ratio:1011/639}
+.cardgrid figcaption{font-size:13px;color:#52645a;margin-top:8px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cardgrid{grid-template-columns:1fr}}
+@media(max-width:540px){.grid{grid-template-columns:1fr}main{margin-top:14px}.panel{padding:13px}}
+</style></head>
+<body><header><h1>PDC — Atelier de cartes numériques</h1><p>V5-B.6.7 corrigée · Deux rectos officiels, un verso commun · Spécimens fictifs</p></header>
+<main>
+<div class="warning"><strong>ENVIRONNEMENT DE TEST — CARTE NON VALIDE.</strong>
+Deux rectos différents, un seul verso commun. Devise des modèles officiels conservée : DÉMOCRATIE / DEMOCRACY. Cette page n'enregistre aucun adhérent, n'attribue aucun numéro et ne délivre aucune carte.
+Utiliser uniquement des données fictives et une photo de démonstration. Les cartes exportées portent obligatoirement le filigrane « SPÉCIMEN » ; QR et code-barres non actifs.</div>
+<section class="panel"><h2>1. Choisir la carte et saisir les informations fictives</h2>
+<form id="member-form" autocomplete="off">
+<div class="grid">
+<div class="field"><label for="card-type">Modèle de carte *</label><select id="card-type" name="cardType"><option value="cameroun">Cameroun</option><option value="diaspora">Diaspora</option></select></div>
+<div class="field"><label for="civility">Civilité</label><select id="civility" name="civilite"><option>Madame</option><option>Monsieur</option></select></div>
+<div class="field"><label for="serial">Numéro de test (six chiffres)</label><input id="serial" name="serial" type="number" min="1" max="999999" value="123" required/></div>
+<div class="field"><label for="lastname">Nom</label><input id="lastname" name="lastName" value="EXEMPLE" maxlength="70"/></div>
+<div class="field"><label for="firstname">Prénom</label><input id="firstname" name="firstName" value="Prénom fictif" maxlength="80"/></div>
+<div class="field"><label for="date-birth">Date de naissance</label><input id="date-birth" name="dateOfBirth" type="date" value="1990-06-15"/></div>
+<div class="field"><label for="birthplace">Lieu de naissance</label><input id="birthplace" name="placeOfBirth" value="Ville fictive"/></div>
+<div class="field"><label for="territory-1" id="territory-1-label">Rattachement 1</label><input id="territory-1" name="territory1" maxlength="80"/></div>
+<div class="field"><label for="territory-2" id="territory-2-label">Rattachement 2</label><input id="territory-2" name="territory2" maxlength="80"/></div>
+<div class="field"><label for="territory-3" id="territory-3-label">Rattachement 3</label><input id="territory-3" name="territory3" maxlength="80"/></div>
+<div class="field"><label for="territory-4" id="territory-4-label">Rattachement 4</label><input id="territory-4" name="territory4" maxlength="80"/></div>
+<div class="field"><label for="issue">Date de test</label><input id="issue" name="issueDate" value="26/10/2026"/></div>
+<div class="field"><label for="portrait">Portrait d'essai (facultatif)</label><input id="portrait" type="file" accept="image/jpeg,image/png"/><small>Chargement local, JPEG/PNG, 5 Mo max.</small></div>
+</div>
+<div class="btnrow"><button type="submit">Actualiser le spécimen</button><button type="button" id="download-front" disabled>Exporter le recto PNG</button><button type="button" id="download-back" disabled>Exporter le verso PNG</button></div>
+<p id="error" class="error" role="alert"></p>
+</form></section>
+<section class="panel"><h2>2. Prévisualisation — strictement non officielle</h2>
+<div class="cardgrid"><figure><h3 id="front-heading">Recto : Cameroun</h3><canvas width="1011" height="639" id="front"></canvas><figcaption>Photo éventuelle et informations fictives.</figcaption></figure>
+<figure><h3 id="back-heading">Verso : commun aux deux cartes</h3><canvas width="1011" height="639" id="back"></canvas><figcaption>Verso officiel PDC identique pour le Cameroun et la diaspora, sans aucune retouche de la maquette originale.</figcaption></figure></div></section>
+</main><script type="module" src="/src/features/cartes-dev/demo.mjs"></script></body></html>
