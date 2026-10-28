@@ -51,6 +51,29 @@ export function makeTaraLinkInput({ productId, productName, amountXaf, productDe
   return Object.freeze(data);
 }
 
+// Les liens Tara de partage ont plusieurs hôtes légitimes, mais jamais
+// un protocole exécutable ou une adresse choisie par le navigateur.
+const TARA_SHARE_HOSTS = new Set([
+  'taramoney.com','www.taramoney.com','dklo.co','www.dklo.co',
+  'wa.me','api.whatsapp.com','web.whatsapp.com','whatsapp.com','www.whatsapp.com',
+  't.me','telegram.me','www.telegram.me',
+  'dikalo.com','www.dikalo.com','dikalo.co','www.dikalo.co',
+]);
+function validTaraShareLink(value, field) {
+  if (typeof value !== 'string' || value.length < 7 || value.length > 2048 ||
+      /[\u0000-\u001f\u007f]/.test(value)) fail('PDC_TARA_PAYMENT_LINK_INVALID');
+  if (field==='smsLink' && /^sms:/i.test(value)) {
+    // Un SMS est un partage, pas une preuve de paiement.
+    if (!/^sms:(?:[+0-9,;]*)?(?:\?[^#]*)?$/i.test(value))
+      fail('PDC_TARA_PAYMENT_LINK_INVALID');
+    return value;
+  }
+  let u;
+  try { u = new URL(value); } catch { fail('PDC_TARA_PAYMENT_LINK_INVALID'); }
+  if (u.protocol !== 'https:' || u.username || u.password || u.hash ||
+      !TARA_SHARE_HOSTS.has(u.hostname.toLowerCase())) fail('PDC_TARA_PAYMENT_LINK_INVALID');
+  return u.toString();
+}
 function validProviderPayUrl(value, expectedPrefix) {
   if (typeof value !== 'string' || value.length > 2048) fail('PDC_TARA_PAYMENT_LINK_INVALID');
   let u;
@@ -67,6 +90,10 @@ export function parseTaraLinkResponse(raw) {
   const generalLink = validProviderPayUrl(raw.generalLink, '/pay/');
   const result = { generalLink };
   if (own(raw, 'cardLink') && raw.cardLink != null) result.cardLink = validProviderPayUrl(raw.cardLink, '/card/');
+  for (const field of ['smsLink','whatsappLink','telegramLink','dikaloLink']) {
+    if (own(raw,field) && raw[field] != null)
+      result[field] = validTaraShareLink(raw[field],field);
+  }
   return Object.freeze(result); // Pas d'injection d'URL WhatsApp/Telegram arbitraire.
 }
 export function parseTaraMobileStatus(raw, productId) {

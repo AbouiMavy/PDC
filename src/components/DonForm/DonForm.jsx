@@ -4,16 +4,11 @@ import { PAYS } from './pays';
 import { INDICATIFS } from './indicatifs';
 import { TERRITOIRES } from './territoires';
 import { communesPourDepartement } from '../../features/adhesion/communes-cm';
+import PaymentMethods from '../PaymentMethods/PaymentMethods';
 import './DonForm.css';
 
 const MONTANTS = [500, 1000, 2500, 5000, 10000, 25000, 50000, 75000, 100000];
 const POSTES = ['scrutateurs', 'cautionnements', 'campagne', 'autres'];
-const METHODES = ['mobile', 'tara', 'carte', 'virement'];
-const RIB = {
-  titulaire: 'PARTI DES DEMOCRATES CAMEROUNAIS',
-  banque: 'BICEC', domiciliation: 'Yaoundé',
-  iban: 'CM2110001068639927716300280', bic: 'ICLRCMCXXXX'
-};
 const integer = value => /^\d+$/.test(String(value)) ? Number(value) : NaN;
 const today = () => {
   const d = new Date();
@@ -53,7 +48,6 @@ export default function DonForm({ onValidated }) {
   const [indicatifManuel,setIndicatifManuel] = useState('');
   const [telephoneLocal,setTelephoneLocal] = useState('');
   const [erreur,setErreur] = useState('');
-  const [copie,setCopie] = useState('');
   const territoire = TERRITOIRES[pays];
   const regionSelectionnee = territoire?.regions?.find(r => r.code === region);
   const departementsPossibles = regionSelectionnee?.departements || null;
@@ -68,10 +62,6 @@ export default function DonForm({ onValidated }) {
   const effacerMessage = () => setErreur('');
   const changerPays = code => { setPays(code);setRegion('');setDepartement('');setCommuneSelection('');setCommuneAutre('');setIndicatifManuel('');setTelephoneLocal('');effacerMessage(); };
   const changerRepartition = (id,value) => { if (value !== '' && !/^\d+$/.test(value)) return; setRepartition(old => ({...old,[id]:value}));effacerMessage();};
-  async function copier(text,which) {
-    try { await navigator.clipboard.writeText(text); setCopie(which); }
-    catch { setCopie('error'); }
-  }
   function soumettre(event) {
     event.preventDefault(); effacerMessage();
     const values = Object.fromEntries(new FormData(event.currentTarget).entries());
@@ -180,22 +170,8 @@ export default function DonForm({ onValidated }) {
       <label className="pdc-don-form__attestation"><input name="anonymePublic" type="checkbox"/><span>{t('donation.privacyOpt')}</span></label>
       <p className="pdc-don-form__aide">{t('donation.privacyInfo')}</p>
     </section>
-    <section className="pdc-don-form__section" aria-labelledby="pdc-paiement"><h2 id="pdc-paiement">{t('donation.paymentTitle')}</h2>
-      <div className="pdc-don-form__methodes">{METHODES.map(id=><label key={id} className={`pdc-don-form__methode ${methode===id?'is-selected':''}`}>
-        <input type="radio" name="modePaiement" value={id} checked={methode===id} onChange={()=>setMethode(id)}/><span><strong>{t(`donation.methods.${id}`)}</strong><small>{t(`donation.methodDetails.${id}`)}</small></span>
-      </label>)}</div>
-      {methode==='tara' && <fieldset className="pdc-don-form__fieldset pdc-don-form__subchoix"><legend>{t('donation.taraChannel')}</legend><div className="pdc-don-form__civilite">
-        {['whatsapp','telegram'].map(id=><label key={id}><input type="radio" name="canalTara" value={id} checked={messagerie===id} onChange={()=>setMessagerie(id)}/> {id==='whatsapp'?'WhatsApp':'Telegram'}</label>)}
-      </div></fieldset>}
-      {methode!=='virement' && <p className="pdc-don-form__aide">{t(`donation.${methode==='mobile'?'mobileHelp':methode==='tara'?'taraHelp':'cardHelp'}`)}</p>}
-      {methode==='virement' && <div className="pdc-don-form__rib"><h3>{t('donation.bankTitle')}</h3><dl>
-        <div><dt>{t('donation.owner')}</dt><dd>{RIB.titulaire}</dd></div>
-        <div><dt>{t('donation.bank')}</dt><dd>{RIB.banque} — {RIB.domiciliation}</dd></div>
-        <div><dt>IBAN</dt><dd className="pdc-don-form__iban"><code>{RIB.iban}</code><button type="button" onClick={()=>copier(RIB.iban,'iban')}>{t('donation.ibanCopy')}</button></dd></div>
-        <div><dt>BIC / SWIFT</dt><dd><code>{RIB.bic}</code><button type="button" onClick={()=>copier(RIB.bic,'bic')}>{t('donation.bicCopy')}</button></dd></div>
-      </dl>{copie && <small role="status">{t(copie==='iban'?'donation.copiedIban':copie==='bic'?'donation.copiedBic':'donation.copyFail')}</small>}
-      <p className="pdc-don-form__aide">{t('donation.bankHelp')}</p></div>}
-    </section>
+    <PaymentMethods methode={methode} onMethodeChange={setMethode}
+      messagerie={messagerie} onMessagerieChange={setMessagerie} titleId="pdc-paiement"/>
     <section className="pdc-don-form__section" aria-labelledby="pdc-declaration"><h2 id="pdc-declaration">{t('donation.statementTitle')}</h2>
       <label className="pdc-don-form__attestation"><input name="declaration" type="checkbox" required/><span>{t('donation.statement')} <strong>*</strong></span></label>
       <p className="pdc-don-form__aide">{t('donation.statementHelp')}</p>
