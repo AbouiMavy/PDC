@@ -208,3 +208,25 @@ test('couple diaspora 40 EUR : pas de lien Tara avant confirmation devise',()=>{
   assert.throws(()=>prepareTaraCheckoutDraft({quote:couple,paymentId:idA,idempotencyKey:'idempotency_ABCDEF123',productId,
     returnUrl:linkArgs.returnUrl,webHookUrl:linkArgs.webHookUrl}),/PDC_TARA_EUR_NOT_DOCUMENTED/);
 });
+
+
+test('Tara reelle : statut SUCCESS majuscule', async () => {
+  const raw = {
+    status: 'SUCCESS',
+    generalLink: 'https://taramoney.com/pay/123456789'
+  };
+  const {fetchImpl} = mockTaraFetch({
+    'https://www.dklo.co/api/tara/paymentlinks': raw
+  });
+  const client = makeTaraServerClient({
+    apiKey: 'test_api_secret',
+    businessId,
+    environment: 'sandbox',
+    allowNetwork: true,
+    fetchImpl
+  });
+  assert.deepEqual(
+    await client.createPaymentLink(linkArgs),
+    {generalLink: raw.generalLink}
+  );
+});

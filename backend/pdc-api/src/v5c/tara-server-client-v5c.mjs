@@ -62,7 +62,7 @@ function validProviderPayUrl(value, expectedPrefix) {
   return u.toString();
 }
 export function parseTaraLinkResponse(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || raw.status !== 'success')
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !['success','SUCCESS'].includes(raw.status))
     fail('PDC_TARA_LINK_NOT_CREATED');
   const generalLink = validProviderPayUrl(raw.generalLink, '/pay/');
   const result = { generalLink };
