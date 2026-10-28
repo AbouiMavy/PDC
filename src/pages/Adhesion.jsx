@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PaymentMethods from '../components/PaymentMethods/PaymentMethods';
+import PublicCheckoutV5C29, {publicCheckoutSandboxEnabled} from '../components/PaymentMethods/PublicCheckoutV5C29';
 import '../components/DonForm/DonForm.css';
 import { PAYS } from '../components/DonForm/pays';
 import { INDICATIFS } from '../components/DonForm/indicatifs';
@@ -331,7 +332,9 @@ export default function Adhesion() {
           ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
           : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
       </p>}
-      <p className="pdc-adhesion-alert">{t.noPayment}</p>
+      {publicCheckoutSandboxEnabled()
+        ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
+        : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
       <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button><button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button></div>
     </section>}
   </main>;

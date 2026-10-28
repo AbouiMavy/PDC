@@ -82,7 +82,10 @@ export default function DonForm({ onValidated }) {
       email:values.email.trim(),pays,region:auCameroun ? region : (values.region || region),
       departement:auCameroun ? departement : (values.departement || departement),commune:communeValidee,
       periodicite,montant,affectation,repartition:affectation==='ciblee' ? {...repartition} : null,
-      methode,messagerie,anonymePublic:Boolean(values.anonymePublic)
+      methode,messagerie,anonymePublic:Boolean(values.anonymePublic),
+      telephoneE164:indicatif + (['FR','GB','DE'].includes(pays)
+        ? telephoneLocal.replace(/[\s().-]/g,'').replace(/^0/,'')
+        : telephoneLocal.replace(/[\s().-]/g,''))
     });
   }
   return <form className="pdc-don-form" onSubmit={soumettre} onChange={effacerMessage}>
