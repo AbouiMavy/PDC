@@ -1,3 +1,4 @@
+import './PublicCheckoutV5C29.css';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {buildPublicOrderPayload,validatePublicCheckoutResponse} from '../../features/payments/public-checkout-payload-v5c29.mjs';
 
@@ -92,7 +93,7 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
       const response=await fetch(`${apiOrigin}/v1/public/orders`,{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({verificationToken:token,order:order.data}),
-        cache:'no-store',credentials:'omit',redirect:'error',
+        cache:'no-store',credentials:'same-origin',redirect:'error',
         signal:AbortSignal.timeout(20000),
       });
       if(!response.ok)throw new Error('HTTP_FAILED');
@@ -112,7 +113,7 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
       {!started&&<>
         <HumanChallenge siteKey={import.meta.env.VITE_PDC_V5C29_TURNSTILE_SITE_KEY} onToken={setToken}/>
         {!token&&<p>{m.human}</p>}
-        <button type="button" disabled={!token||busy} onClick={submit}>{m.prepare}</button>
+        <button className="pdc-checkout-v5c29__submit" type="button" disabled={!token||busy} onClick={submit}>{m.prepare}</button>
       </>}
       {busy&&<p role="status">{lang==='en'?'Submitting once…':'Envoi unique en cours…'}</p>}
       {status?.error&&<p role="alert">{m.unavailable}</p>}

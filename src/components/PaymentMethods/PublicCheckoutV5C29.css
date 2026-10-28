@@ -1,0 +1,31 @@
+
+.pdc-checkout-v5c29__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin: 16px 0;
+  padding: 14px 24px;
+  background: #0d5931;
+  color: #ffffff;
+  border: 1px solid #0d5931;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  cursor: pointer;
+}
+.pdc-checkout-v5c29__submit:hover:not(:disabled) {
+  background: #084624;
+}
+.pdc-checkout-v5c29__submit:focus-visible {
+  outline: 3px solid #e5a913;
+  outline-offset: 3px;
+}
+.pdc-checkout-v5c29__submit:disabled {
+  background: #dce4dc;
+  border-color: #dce4dc;
+  color: #657467;
+  cursor: not-allowed;
+}
