@@ -14,7 +14,7 @@ test('choix de paiement partagé intact et pas de secret dans React',()=>{
   assert.match(s,/VITE_PDC_V5C29_CHECKOUT_ENABLED/);
   assert.match(s,/VITE_PDC_V5C29_ENV/);
   assert.match(s,/verificationToken:token,order:order\.data/);
-  assert.match(s,/credentials:'omit'/);
+  assert.match(s,/credentials:'same-origin'/);
   assert.doesNotMatch(s,/service_role|TARA_API_KEY|TURNSTILE_SECRET/);
   assert.match(read('src/components/DonForm/DonForm.jsx'),/telephoneE164:/);
 });
