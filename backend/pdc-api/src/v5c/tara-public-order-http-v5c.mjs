@@ -2,6 +2,8 @@
 // Authentification militant NON requise. Défenses anti-abus injectées obligatoires.
 // Ne crée aucun lien, ne confirme aucun paiement et n'expose aucune clé privée.
 import { createServer } from 'node:http';
+import {isIP} from 'node:net';
+// V5C30: adresse client vérifiée avant les protections anti-abus.
 import { V5CError } from './contracts.mjs';
 import { validateStoredTaraChannelLink } from './tara-channel-links-v5c.mjs';
 
@@ -51,10 +53,12 @@ async function parseBody(req) {
  * Le serveur existant en lecture seule n'est pas modifié.
  */
 export function createPublicOrderHttpV5C({repository,enforceRateLimit,verifyHuman,
-  allowedOrigins=[],enabled=false,environment='disabled'}={}) {
+  allowedOrigins=[],resolveClientAddress=(req)=>req.socket.remoteAddress,
+  enabled=false,environment='disabled'}={}) {
   if (enabled!==true || environment!=='sandbox') err('PDC_PUBLIC_HTTP_DISABLED');
   if (typeof repository?.create!=='function' || typeof enforceRateLimit!=='function' ||
-      typeof verifyHuman!=='function' || !Array.isArray(allowedOrigins) ||
+      typeof verifyHuman!=='function' || typeof resolveClientAddress!=='function' ||
+      !Array.isArray(allowedOrigins) ||
       allowedOrigins.length<1 || allowedOrigins.some(o=>typeof o!=='string' ||
         !/^https:\/\/[^/?#]+$/.test(o))) err('PDC_PUBLIC_HTTP_DEPENDENCY_INVALID');
   return createServer(async (req,res)=>{
@@ -72,7 +76,11 @@ export function createPublicOrderHttpV5C({repository,enforceRateLimit,verifyHuma
     }
     if (req.method!=='POST')return respond(res,405,{error:'METHOD_NOT_ALLOWED'},cors);
     try {
-      const address=req.socket.remoteAddress ?? 'unknown';
+      let address;
+      try {address=resolveClientAddress(req);}
+      catch {return respond(res,403,{error:'CLIENT_ADDRESS_UNTRUSTED'},cors);}
+      if (typeof address!=='string' || !isIP(address))
+        return respond(res,403,{error:'CLIENT_ADDRESS_UNTRUSTED'},cors);
       if (await enforceRateLimit({address})!==true)
         return respond(res,429,{error:'RATE_LIMITED'},cors);
       const body=await parseBody(req);

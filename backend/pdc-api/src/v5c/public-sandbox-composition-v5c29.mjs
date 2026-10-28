@@ -10,7 +10,7 @@ import {makeTurnstileVerifierV5C29} from './turnstile-verifier-v5c29.mjs';
 
 export async function composeProtectedPublicSandboxV5C29({pool,hmacSecret,turnstileSecret,
   expectedHostname,allowedOrigins,issueLinks=false,taraClient=null,returnUrl,webHookUrl,
-  enabled=false,environment='disabled'}={}){
+  resolveClientAddress,enabled=false,environment='disabled'}={}){
   if (enabled!==true || environment!=='sandbox' || !Array.isArray(allowedOrigins) ||
       allowedOrigins.length<1)throw new Error('PUBLIC_SANDBOX_29_DISABLED');
   const orders=await makePublicOrderPgV5C({pool,enabled:true,environment:'sandbox'});
@@ -23,6 +23,6 @@ export async function composeProtectedPublicSandboxV5C29({pool,hmacSecret,turnst
   // issueLinks doit être explicite et seulement après vérification des vraies URLs Tara.
   const app=composePublicTaraSandboxV5C({orders,taraReservations,channelStore,taraClient,
     returnUrl,webHookUrl,enforceRateLimit,verifyHuman,
-    allowedOrigins,issueLinks,enabled:true,environment:'sandbox'});
+    allowedOrigins,resolveClientAddress,issueLinks,enabled:true,environment:'sandbox'});
   return Object.freeze({...app,protectorsReady:true});
 }
