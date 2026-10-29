@@ -76,6 +76,8 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
   const enabled=publicCheckoutSandboxEnabled();
   const [token,setToken]=useState(''),[status,setStatus]=useState(null);
   const [started,setStarted]=useState(false),[busy,setBusy]=useState(false);
+  // L'ouverture du lien n'est jamais interprétée comme un paiement réussi.
+  const [linkOpened,setLinkOpened]=useState(false);
   const reference=useRef(null);
   if(reference.current===null){
     reference.current=typeof crypto!=='undefined' && typeof crypto.randomUUID==='function'
@@ -124,18 +126,43 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
         <p><strong>{result.paymentId}</strong> — {result.grossAmountXaf} FCFA</p>
         <p role="status">{result.status==='issued'?m.issued:result.status==='manual_review'?m.manual:
           result.status==='pending_external_payment'?m.bank:m.pending}</p>
-        {result.status==='issued'&&<>
-          <a href={result.paymentUrl} target={result.paymentUrl.startsWith('sms:')?undefined:'_blank'}
-             rel="noopener noreferrer" referrerPolicy="no-referrer">{result.linkField==='smsLink'
-            ? (lang==='fr'?'Ouvrir le SMS TaraMoney':'Open TaraMoney SMS') : m.open}</a>
+        {result.status==='issued'&&<section className="pdc-checkout-v5c29__stage" aria-label={lang==='fr'?'Étape paiement':'Payment step'}>
+          <h3>{lang==='fr'?'1. Procéder au paiement':'1. Proceed to payment'}</h3>
+          <p>{lang==='fr'
+            ? 'Ouvrez le lien sécurisé TaraMoney. Revenez ensuite sur cette page pour conserver vos références PDC.'
+            : 'Open the secure TaraMoney link. Then return here to keep your PDC references.'}</p>
+          <a className="pdc-checkout-v5c29__pay-link" href={result.paymentUrl}
+             target={result.paymentUrl.startsWith('sms:')?undefined:'_blank'}
+             rel="noopener noreferrer" referrerPolicy="no-referrer"
+             onClick={()=>setLinkOpened(true)}>
+            {result.linkField==='smsLink'
+              ? (lang==='fr'?'Ouvrir le lien SMS TaraMoney':'Open TaraMoney SMS link')
+              : (lang==='fr'?`Payer ${result.grossAmountXaf} FCFA sur TaraMoney ↗`
+                : `Pay XAF ${result.grossAmountXaf} on TaraMoney ↗`)}
+          </a>
           {result.linkField==='smsLink'&&<p>{m.sms}</p>}
-        </>}
-        <button className="pdc-checkout-v5c29__submit" type="button" onClick={()=>{
-          // Attestation de réception, PAS paiement ou admission.
-          const pdcReceipt=makePendingReceiptV5C44(source,result);
-          navigate(source==='membership'?'/adhesion/merci':'/soutenir/merci',
-            {state:{pdcReceipt}});
-        }}>{lang==='fr'?'Terminer et conserver ma référence':'Finish and keep my reference'}</button>
+          <p className="pdc-checkout-v5c29__caution">{lang==='fr'
+            ? 'L’ouverture du lien ne signifie pas que le paiement est effectué ou vérifié.'
+            : 'Opening this link does not mean payment has been completed or verified.'}</p>
+        </section>}
+        {(result.status!=='issued'||linkOpened)&&<section className="pdc-checkout-v5c29__stage pdc-checkout-v5c29__stage--finish" aria-label={lang==='fr'?'Étape références':'References step'}>
+          <h3>{lang==='fr'?'2. Conserver mes références':'2. Keep my references'}</h3>
+          <p>{lang==='fr'
+            ? 'Votre demande restera en attente de vérification par le PDC, même après ouverture du lien TaraMoney.'
+            : 'Your request will remain pending PDC verification even after opening TaraMoney.'}</p>
+          <button className="pdc-checkout-v5c29__finish" type="button" onClick={()=>{
+            // Attestation de réception, PAS paiement ou admission.
+            const pdcReceipt=makePendingReceiptV5C44(source,result);
+            navigate(source==='membership'?'/adhesion/merci':'/soutenir/merci',
+              {state:{pdcReceipt}});
+          }}>{lang==='fr'?'Terminer et conserver mes références':'Finish and keep my references'}</button>
+        </section>}
+        {result.status==='issued'&&!linkOpened&&<button
+          className="pdc-checkout-v5c29__later" type="button" onClick={()=>{
+            const pdcReceipt=makePendingReceiptV5C44(source,result);
+            navigate(source==='membership'?'/adhesion/merci':'/soutenir/merci',
+              {state:{pdcReceipt}});
+          }}>{lang==='fr'?'Payer plus tard — conserver mes références':'Pay later — keep my references'}</button>}
       </>}
     </>}
   </section>;

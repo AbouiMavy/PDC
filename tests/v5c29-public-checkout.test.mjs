@@ -36,10 +36,10 @@ test('don mensuel et anonymat public non activés',()=>{
   assert.throws(()=>build('donation',{...donor,periodicite:'mensuel'}),/MONTHLY_NOT_AVAILABLE/);
   assert.throws(()=>build('donation',{...donor,anonymePublic:true}),/ANONYMITY_NOT_YET_SUPPORTED/);
 });
-test('adhésion couple, diaspora, photo et cotisation simultanée non facturées à 2000 XAF',()=>{
+test('R4 couple diaspora et photo bloqués, montant annuel incohérent refusé',()=>{
   assert.throws(()=>build('membership',{...member,form:{...member.form,pays:'FR'}}),/MEMBERSHIP_SCOPE/);
-  assert.throws(()=>build('membership',{...member,form:{...member.form,demandeCarte:true}}),/MEMBERSHIP_COMPLEX/);
-  assert.throws(()=>build('membership',{...member,amounts:{totalImmediate:5000}}),/MEMBERSHIP_COMPLEX/);
+  assert.throws(()=>build('membership',{...member,form:{...member.form,demandeCarte:true}}),/CARD_PHOTO_PUBLIC_UPLOAD_NOT_READY/);
+  assert.throws(()=>build('membership',{...member,amounts:{totalImmediate:5000}}),/INVALID_ANNUAL_PAYMENT/);
 });
 test('réponse issued WhatsApp : domaine et canal corrects uniquement',()=>{
   const r={status:'issued',paymentId:'a91d4e12-937e-4891-8a58-33a8fc7ad317',

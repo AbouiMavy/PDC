@@ -18,7 +18,8 @@ test('4 moyens de paiement accessibles dans les deux formulaires',()=>{
   assert.match(shared,/onMethodeChange\(id\)/);
 });
 test('choix WhatsApp et Telegram memorises',()=>{
-  assert.match(shared,/\['whatsapp','telegram','dikalo'\]/);
+  assert.match(shared,/\['general','whatsapp','telegram','dikalo'\]/);
+  assert.match(shared,/id === 'general'/);
   assert.match(shared,/onMessagerieChange\(id\)/);
   assert.match(adh,/const \[messagerie,setMessagerie\]/);
   assert.match(adh,/messagerie==='telegram'/);

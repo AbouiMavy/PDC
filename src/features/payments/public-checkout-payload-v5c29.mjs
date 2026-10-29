@@ -54,8 +54,16 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
   if (source==='membership') {
     const f=data.form;
     if (!f || f.type!=='nouvelle' || f.pays!=='CM' || f.formule==='couple') fail('MEMBERSHIP_SCOPE');
-    if (f.modeCotisation!=='aucun' || data.amounts?.totalImmediate!==2000 ||
-        f.demandeCarte===true) fail('MEMBERSHIP_COMPLEX_NOT_YET_SUPPORTED');
+    if (f.demandeCarte===true) fail('CARD_PHOTO_PUBLIC_UPLOAD_NOT_READY');
+    // Validation client uniquement : montant et ventilation vérifiés côté serveur et SQL.
+    const annualMap={rural_etudiant:5000,urbain:12000,conseil_national:20000,ben:25000};
+    const annualDue=annualMap[f.categorie];
+    if (!annualDue || !['aucun','partiel','total'].includes(f.modeCotisation))fail('INVALID_ANNUAL_MODE');
+    const annualPaid=f.modeCotisation==='aucun'?0:
+      f.modeCotisation==='total'?annualDue:Number(f.versementPartiel);
+    if (!Number.isSafeInteger(annualPaid)||annualPaid<0||annualPaid>annualDue||
+       (f.modeCotisation==='partiel'&&(annualPaid<=0||annualPaid>=annualDue))||
+       data.amounts?.totalImmediate!==2000+annualPaid)fail('INVALID_ANNUAL_PAYMENT');
     if (!f.accepteStatuts || !f.accepteDonnees) fail('MISSING_CONSENT');
     const base=common({firstName:f.prenom,lastName:f.nom,email:f.email,
       phoneE164:'+237'+String(f.telephone||'').replace(/[\s().-]/g,''),
@@ -63,7 +71,7 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
       messagingChannel:data.methode==='tara'?data.messagerie:null},idempotencyKey);
     return Object.freeze({kind:'initial_membership',...base,dob:f.dateNaissance,
       birthPlace:f.lieuNaissance,civility:f.civilite,memberCategory:f.categorie,
-      acceptedStatutes:true,acceptedDataNotice:true});
+      acceptedStatutes:true,acceptedDataNotice:true,annualMode:f.modeCotisation,annualPaymentXaf:String(annualPaid)});
   }
   fail('INVALID_SOURCE');
 }

@@ -29,3 +29,71 @@
   color: #657467;
   cursor: not-allowed;
 }
+
+/* V5-C.44 UX R3+ — priorité visuelle au paiement, puis aux références. */
+.pdc-checkout-v5c29__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-block: 22px;
+  padding: 20px;
+  border: 1px solid #c9d9d0;
+  border-radius: 12px;
+  background: #f6faf7;
+}
+.pdc-checkout-v5c29__stage h3,
+.pdc-checkout-v5c29__stage p { margin: 0; }
+.pdc-checkout-v5c29__pay-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  max-width: 100%;
+  padding: 14px 22px;
+  background: #0d5931;
+  color: #fff;
+  border: 2px solid #0d5931;
+  border-radius: 9px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.pdc-checkout-v5c29__pay-link:hover { background: #084624; color: #fff; }
+.pdc-checkout-v5c29__pay-link:focus-visible,
+.pdc-checkout-v5c29__finish:focus-visible,
+.pdc-checkout-v5c29__later:focus-visible {
+  outline: 3px solid #d9a319;
+  outline-offset: 3px;
+}
+.pdc-checkout-v5c29__caution { color: #405548; font-size: .91rem; }
+.pdc-checkout-v5c29__stage--finish { background: #fff; }
+.pdc-checkout-v5c29__finish {
+  padding: 12px 20px;
+  min-height: 48px;
+  background: #fff;
+  color: #0d5931;
+  border: 2px solid #0d5931;
+  border-radius: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.pdc-checkout-v5c29__later {
+  display: block;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #0d5931;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .pdc-checkout-v5c29__pay-link,
+  .pdc-checkout-v5c29__finish { width: 100%; }
+  .pdc-checkout-v5c29__stage { padding: 15px; }
+}

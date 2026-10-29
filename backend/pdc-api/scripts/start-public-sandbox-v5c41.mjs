@@ -58,7 +58,8 @@ function config() {
 
   return {
     origin,
-    returnUrl:`${origin}/`,
+    // Le retour du navigateur n'est jamais une preuve de paiement.
+    returnUrl:`${origin}/retour-paiement`,
     webHookUrl:env.PDC_V5C41_WEBHOOK_URL,
     resolveClientAddress:makeTrustedClientAddressV5C30({
       mode:'direct',
@@ -76,11 +77,41 @@ try {
   // apiKey = clé Sandbox.
   // businessId = identifiant marchand commun aux deux modes.
   // Aucun champ environment n'est envoyé dans le JSON Tara.
-  const taraClient=makeTaraServerClient({
+  const baseTaraClient=makeTaraServerClient({
     apiKey:env.PDC_V5C41_TARA_SANDBOX_API_KEY,
     businessId:env.PDC_V5C41_TARA_BUSINESS_ID,
     environment:'sandbox',
     allowNetwork:true
+  });
+  // Tara doit pouvoir récupérer les images publiquement (HTTPS, sans jeton).
+  function publicPicture(value) {
+    if (!value) return null;
+    let url;
+    try {url=new URL(value);}catch {throw Error('PDC_TARA_PICTURE_INVALID');}
+    if (url.protocol!=='https:' || url.username || url.password || url.search ||
+        url.hash || url.port || !/\.(?:png|jpe?g)$/i.test(url.pathname) ||
+        ['localhost','127.0.0.1','0.0.0.0'].includes(url.hostname) ||
+        url.hostname.endsWith('.app.github.dev'))
+      throw Error('PDC_TARA_PICTURE_INVALID');
+    return url.toString();
+  }
+  const pictures=Object.freeze({
+    donation:publicPicture(env.PDC_V5C41_DONATION_PICTURE_URL),
+    membership:publicPicture(env.PDC_V5C41_MEMBERSHIP_PICTURE_URL),
+    annual:publicPicture(env.PDC_V5C41_ANNUAL_PICTURE_URL)
+  });
+  const taraClient=Object.freeze({
+    ...baseTaraClient,
+    createPaymentLink(input,options) {
+      const kind=input?.productName==='Don au PDC'?'donation':'membership';
+      const isAnnual=kind==='membership' && typeof input?.amountXaf==='string' &&
+        /^\d+$/.test(input.amountXaf) && BigInt(input.amountXaf)>2000n;
+      const image=isAnnual?(pictures.annual??pictures.membership):pictures[kind];
+      return baseTaraClient.createPaymentLink({
+        ...input,
+        ...(image?{productPictureUrl:image}:{})
+      },options);
+    }
   });
 
   pool=await openWriterPoolV5C30({

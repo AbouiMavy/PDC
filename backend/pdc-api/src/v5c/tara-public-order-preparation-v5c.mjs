@@ -16,7 +16,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+[1-9][0-9]{6,14}$/;
 const allowedFields = new Set(['kind','idempotencyKey','firstName','lastName','email','phoneE164',
   'country','method','messagingChannel','amountXaf','designations','dob','birthPlace',
-  'civility','memberCategory','acceptedStatutes','acceptedDataNotice','donorDeclaration']);
+  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration']);
 const name = (v,max=100) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= max &&
   !/[\u0000-\u001f\u007f<>]/.test(v);
 const isoDate = value => {
@@ -66,10 +66,19 @@ export function preparePublicOrderRequest(raw) {
         !isoDate(raw.dob) || !name(raw.birthPlace,160) ||
         !['rural_etudiant','urbain','conseil_national','ben'].includes(raw.memberCategory))
       fail('PDC_PUBLIC_MEMBERSHIP_INVALID');
-    // Tarif initial national vérifié en SQL: 2 000 XAF, pas de dette EUR.
-    grossAmountXaf = '2000';
+    // Le tarif et la ventilation sont recalculés côté serveur, jamais adoptés depuis React.
+    const annualDue={rural_etudiant:5000,urbain:12000,conseil_national:20000,ben:25000}[raw.memberCategory];
+    const mode=raw.annualMode??'aucun';
+    const annualPaidRaw=raw.annualPaymentXaf ?? (raw.annualMode==null?'0':null);
+    if (!['aucun','partiel','total'].includes(mode)||!annualDue||
+        typeof annualPaidRaw!=='string'||!/^\d{1,5}$/.test(annualPaidRaw))
+      fail('PDC_PUBLIC_MEMBERSHIP_INVALID');
+    const paid=Number(annualPaidRaw);
+    if ((mode==='aucun'&&paid!==0)||(mode==='total'&&paid!==annualDue)||
+        (mode==='partiel'&&(paid<=0||paid>=annualDue)))fail('PDC_PUBLIC_MEMBERSHIP_INVALID');
+    grossAmountXaf=String(2000+paid);
     membership = Object.freeze({civility:raw.civility,dateOfBirth:raw.dob,
-      birthPlace:raw.birthPlace.trim(),category:raw.memberCategory});
+      birthPlace:raw.birthPlace.trim(),category:raw.memberCategory,annualPaymentXaf:String(paid)});
     kind = 'individual_initial';
   }
   const order = {

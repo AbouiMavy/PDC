@@ -335,7 +335,7 @@ export default function Adhesion() {
       {publicCheckoutSandboxEnabled()
         ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
         : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
-      <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button><button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button></div>
+      <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button>{!publicCheckoutSandboxEnabled()&&<button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button>}</div>
     </section>}
   </main>;
 }

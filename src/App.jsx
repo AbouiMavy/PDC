@@ -8,6 +8,7 @@ import Soutenir from "./pages/Soutenir";
 import Adhesion from './pages/Adhesion';
 import AdhesionMerci from './pages/AdhesionMerci';
 import EspaceMilitant from './pages/EspaceMilitant';
+import RetourPaiementV5C44 from './pages/RetourPaiementV5C44';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="adhesion/merci" element={<AdhesionMerci />} />
           <Route path="mon-espace" element={<EspaceMilitant />} />
           <Route path="soutenir/merci" element={<Merci />} />
+          <Route path="retour-paiement" element={<RetourPaiementV5C44 />} />
           <Route path="soutenir" element={<Soutenir />} />
         </Route>
       </Routes>

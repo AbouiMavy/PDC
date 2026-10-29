@@ -12,6 +12,7 @@ const publicPaths = [
   '/histoire',
   '/adhesion',
   '/adhesion/merci',
+  '/retour-paiement',
   '/soutenir',
   '/soutenir/merci',
   '/mon-espace',
