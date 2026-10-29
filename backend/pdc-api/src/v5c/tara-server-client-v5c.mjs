@@ -148,10 +148,47 @@ export function makeTaraServerClient({ apiKey, businessId, environment = 'disabl
     }
   }
   return Object.freeze({
-    async createPaymentLink(input) {
-      // Construire l'entrée avant d'y ajouter les identifiants privés.
-      const body = makeTaraLinkInput(input);
-      return parseTaraLinkResponse(await post(URLS.link,body));
+    async createPaymentLink(input,{selectedField=null}={}) {
+      const allowed=['smsLink','whatsappLink','telegramLink',
+        'dikaloLink','cardLink'];
+      if(selectedField!==null && !allowed.includes(selectedField))
+        fail('PDC_TARA_CHANNEL_INVALID');
+
+      const body=makeTaraLinkInput(input);
+      const raw=await post(URLS.link,body);
+
+      if(selectedField===null)
+        return parseTaraLinkResponse(raw);
+
+      if(!raw || typeof raw!=='object' || Array.isArray(raw))
+        fail('PDC_TARA_LINK_NOT_CREATED');
+
+      const selected={
+        status:raw.status,
+        generalLink:raw.generalLink,
+        [selectedField]:raw[selectedField]
+      };
+
+      try {
+        return parseTaraLinkResponse(selected);
+      } catch(error) {
+        const profile=value=>{
+          if(typeof value!=='string')return {type:typeof value};
+          try {
+            const u=new URL(value);
+            return {protocol:u.protocol,host:u.hostname||null};
+          }catch {
+            return {type:'unparseable'};
+          }
+        };
+        console.warn('PDC_TARA_LINK_FORMAT_REJECTED',
+          JSON.stringify({
+            field:selectedField,
+            general:profile(raw.generalLink),
+            selected:profile(raw[selectedField])
+          }));
+        throw error;
+      }
     },
     async checkMobileStatus(productId) {
       validateTaraProductId(productId);

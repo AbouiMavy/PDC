@@ -53,6 +53,7 @@ export function makeTaraPublicIssuerV5C({taraReservations,channelStore,taraClien
     // À partir de ce point, tout échec (y compris lien de canal manquant)
     // est potentiellement postérieur à une création réelle chez Tara.
     // Il interdit une nouvelle émission automatique.
+    let stage='build';
     try {
       const input=makeTaraLinkInput({
         productId:row.productId,
@@ -60,18 +61,29 @@ export function makeTaraPublicIssuerV5C({taraReservations,channelStore,taraClien
         productDescription:'Contribution PDC - paiement de commande publique',
         amountXaf:order.quote.amountMinor,returnUrl,webHookUrl,
       });
-      const links=await taraClient.createPaymentLink(input);
+      stage='provider';
+      const links=await taraClient.createPaymentLink(
+        input,{selectedField:field});
+      stage='selection';
       const selected=selectTaraPaymentLink(links,{method:order.method,
         messagingChannel:order.messagingChannel});
       // Une seule transaction SQL associe generalLink (historique),
       // canal demandé, champ et URL sélectionnée à la même commande.
+      stage='persistence';
       await channelStore.saveIssuedChannel({productId:row.productId,
         paymentId:order.paymentId,idempotencyKey,method:order.method,
         messagingChannel:order.messagingChannel,linkField:selected.field,
         paymentUrl:selected.paymentUrl,generalLink:links.generalLink});
       return Object.freeze({status:'issued',paymentUrl:selected.paymentUrl,
         linkField:selected.field,productId:row.productId});
-    } catch {
+    } catch(error) {
+      console.warn('PDC_V5C41_ISSUE_REVIEW',
+        JSON.stringify({
+          stage,
+          code:error instanceof V5CError
+            ? error.code
+            : 'UNEXPECTED'
+        }));
       try {await taraReservations.markLinkUnknown(row.productId);} catch { /* revue humaine */ }
       return Object.freeze({status:'manual_review'});
     }

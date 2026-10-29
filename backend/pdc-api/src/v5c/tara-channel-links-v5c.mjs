@@ -24,7 +24,11 @@ export function selectTaraPaymentLink(links, {method, messagingChannel = null} =
     fail('PDC_TARA_LINK_NOT_CREATED');
   // Revalidation indépendante : les URL ne doivent jamais être prises telles quelles
   // depuis une requête HTTP, un webhook ou une ligne fournisseur corrompue.
-  const safe = parseTaraLinkResponse({...links, status: 'SUCCESS'});
+  const safe = parseTaraLinkResponse({
+    status:'SUCCESS',
+    generalLink:links.generalLink,
+    [field]:links[field]
+  });
   if (typeof safe[field] !== 'string' || safe[field].length === 0)
     fail('PDC_TARA_CHANNEL_LINK_UNAVAILABLE');
   return Object.freeze({field, paymentUrl:safe[field]});

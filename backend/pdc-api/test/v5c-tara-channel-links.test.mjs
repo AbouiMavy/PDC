@@ -78,3 +78,47 @@ test('commande publique rÃ©serve aussi une carte Tara et conserve le virement sÃ
   assert.doesNotMatch(sql,/WHEN 'carte' THEN 'stripe'/);
   assert.match(sql,/WHEN 'virement' THEN 'bank_transfer' ELSE 'tara'/);
 });
+
+test('V5C41: Mobile Money ignore les autres canaux invalides',async()=>{
+  const raw={
+    ...LINKS,
+    whatsappLink:'https://invalid.example/pay',
+    telegramLink:'javascript:alert(1)',
+    cardLink:'https://invalid.example/card'
+  };
+
+  assert.deepEqual(selected(raw,'mobile'),{
+    field:'smsLink',
+    paymentUrl:LINKS.smsLink
+  });
+
+  const client=makeTaraServerClient({
+    apiKey:'faux_test_secret',
+    businessId:'PDC_TEST',
+    environment:'sandbox',
+    allowNetwork:true,
+    fetchImpl:async()=>({
+      ok:true,
+      text:async()=>JSON.stringify(raw)
+    })
+  });
+
+  const result=await client.createPaymentLink({
+    productId:'PDC_'+'a'.repeat(24),
+    productName:'Don PDC',
+    amountXaf:'500',
+    productDescription:'Diagnostic PDC',
+    returnUrl:'https://pdc.example.org/retour',
+    webHookUrl:'https://pdc.example.org/webhook'
+  },{selectedField:'smsLink'});
+
+  assert.equal(result.smsLink,LINKS.smsLink);
+  assert.equal(result.generalLink,LINKS.generalLink);
+  assert.equal('whatsappLink' in result,false);
+  assert.equal('cardLink' in result,false);
+
+  assert.throws(
+    ()=>selected({...raw,smsLink:'https://invalid.example'},'mobile'),
+    /PDC_TARA_PAYMENT_LINK_INVALID/
+  );
+});
