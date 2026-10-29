@@ -123,7 +123,8 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
           result.status==='pending_external_payment'?m.bank:m.pending}</p>
         {result.status==='issued'&&<>
           <a href={result.paymentUrl} target={result.paymentUrl.startsWith('sms:')?undefined:'_blank'}
-             rel="noopener noreferrer" referrerPolicy="no-referrer">{m.open}</a>
+             rel="noopener noreferrer" referrerPolicy="no-referrer">{result.linkField==='smsLink'
+            ? (lang==='fr'?'Ouvrir le SMS TaraMoney':'Open TaraMoney SMS') : m.open}</a>
           {result.linkField==='smsLink'&&<p>{m.sms}</p>}
         </>}
       </>}

@@ -122,3 +122,21 @@ test('V5C41: Mobile Money ignore les autres canaux invalides',async()=>{
     /PDC_TARA_PAYMENT_LINK_INVALID/
   );
 });
+
+test('V5C42 : sms:// Tara devient sms: canonique',()=>{
+  const source='sms://+237640154040?body=Don%20PDC';
+  const expected='sms:+237640154040?body=Don%20PDC';
+  assert.equal(selected({...LINKS,smsLink:source},'mobile').paymentUrl,expected);
+  assert.equal(selected({...LINKS,smsLink:'sms:?body=Don%20PDC'},'mobile').paymentUrl,'sms:?body=Don%20PDC');
+  for(const bad of ['sms://evil.example?body=x','sms://+237640154040#frag',
+    'sms://+237640154040?text=bad','javascript:alert(1)'])
+    assert.throws(()=>selected({...LINKS,smsLink:bad},'mobile'),/PDC_TARA_PAYMENT_LINK_INVALID/);
+});
+test('V5C42 : cardpay et général explicite, sans substitution silencieuse',()=>{
+  const raw={...LINKS,cardLink:'https://taramoney.com/cardpay/@180211475@50000'};
+  assert.equal(selected(raw,'carte').paymentUrl,raw.cardLink);
+  assert.deepEqual(selected(raw,'tara','general'),{field:'generalLink',paymentUrl:raw.generalLink});
+  assert.throws(()=>selected({...raw,generalLink:'https://evil.example/pay/abc'},'tara','general'),
+    /PDC_TARA_PAYMENT_LINK_INVALID/);
+  assert.throws(()=>selected({...raw,smsLink:undefined},'mobile'),/PDC_TARA_CHANNEL_LINK_UNAVAILABLE/);
+});

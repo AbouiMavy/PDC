@@ -35,9 +35,9 @@ export default function PaymentMethods({
     {methode === 'tara' && <fieldset className="pdc-don-form__fieldset pdc-don-form__subchoix">
       <legend>{t('donation.taraChannel')}</legend>
       <div className="pdc-don-form__civilite">
-        {['whatsapp','telegram','dikalo'].map(id => <label key={id}>
+        {['general','whatsapp','telegram','dikalo'].map(id => <label key={id}>
           <input type="radio" name="canalTara" value={id} checked={messagerie === id} onChange={() => onMessagerieChange(id)}/>
-          {id === 'whatsapp' ? 'WhatsApp' : id === 'telegram' ? 'Telegram' : 'Dikalo'}
+          {id === 'general' ? t('donation.taraGeneral') : id === 'whatsapp' ? 'WhatsApp' : id === 'telegram' ? 'Telegram' : 'Dikalo'}
         </label>)}
       </div>
     </fieldset>}

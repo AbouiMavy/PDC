@@ -7,6 +7,7 @@ const fail = code => { throw new V5CError(code); };
 const expectedChannel = (method, messagingChannel) =>
   method === 'mobile' && messagingChannel == null ? 'smsLink' :
   method === 'carte' && messagingChannel == null ? 'cardLink' :
+  method === 'tara' && messagingChannel === 'general' ? 'generalLink' :
   method === 'tara' && messagingChannel === 'whatsapp' ? 'whatsappLink' :
   method === 'tara' && messagingChannel === 'telegram' ? 'telegramLink' :
   method === 'tara' && messagingChannel === 'dikalo' ? 'dikaloLink' : null;

@@ -10,13 +10,14 @@ export const TARA_LINK_FIELDS = Object.freeze({
   telegram: 'telegramLink',
   dikalo: 'dikaloLink',
   carte: 'cardLink',
+  general: 'generalLink',
 });
 
 export function selectTaraPaymentLink(links, {method, messagingChannel = null} = {}) {
   let field;
   if (method === 'mobile' && messagingChannel == null) field = TARA_LINK_FIELDS.mobile;
   else if (method === 'carte' && messagingChannel == null) field = TARA_LINK_FIELDS.carte;
-  else if (method === 'tara' && ['whatsapp','telegram','dikalo'].includes(messagingChannel))
+  else if (method === 'tara' && ['general','whatsapp','telegram','dikalo'].includes(messagingChannel))
     field = TARA_LINK_FIELDS[messagingChannel];
   else fail('PDC_TARA_CHANNEL_INVALID');
   if (!links || typeof links !== 'object' || Array.isArray(links) ||
@@ -39,7 +40,7 @@ export function validateStoredTaraChannelLink(paymentUrl,{method,messagingChanne
   let field;
   if (method==='mobile' && messagingChannel==null) field='smsLink';
   else if (method==='carte' && messagingChannel==null) field='cardLink';
-  else if (method==='tara' && ['whatsapp','telegram','dikalo'].includes(messagingChannel))
+  else if (method==='tara' && ['general','whatsapp','telegram','dikalo'].includes(messagingChannel))
     field=TARA_LINK_FIELDS[messagingChannel];
   else fail('PDC_TARA_CHANNEL_INVALID');
   return selectTaraPaymentLink({status:'SUCCESS',

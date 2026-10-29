@@ -7,7 +7,7 @@ const fail = code => { throw new Error(code); };
 
 function common({firstName,lastName,email,phoneE164,country,method,messagingChannel},idempotencyKey) {
   if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9:_-]{16,128}$/.test(idempotencyKey)) fail('INVALID_REFERENCE');
-  if (!METHODS.has(method) || (method==='tara' && !['whatsapp','telegram','dikalo'].includes(messagingChannel)) ||
+  if (!METHODS.has(method) || (method==='tara' && !['general','whatsapp','telegram','dikalo'].includes(messagingChannel)) ||
       (method!=='tara' && messagingChannel!=null)) fail('INVALID_CHANNEL');
   if (![firstName,lastName,email,phoneE164,country].every(x=>typeof x==='string' && x.length>0)) fail('MISSING_IDENTITY');
   return {idempotencyKey,firstName,lastName,email,phoneE164,country,method,
@@ -72,7 +72,7 @@ const PROVIDER_HOSTS = new Set(['taramoney.com','www.taramoney.com','dklo.co','w
   'wa.me','api.whatsapp.com','web.whatsapp.com','whatsapp.com','www.whatsapp.com',
   't.me','telegram.me','www.telegram.me','dikalo.com','www.dikalo.com','dikalo.co','www.dikalo.co']);
 const fieldFor = (method,channel) => method==='mobile'?'smsLink':method==='carte'?'cardLink':
-  method==='tara'?({whatsapp:'whatsappLink',telegram:'telegramLink',dikalo:'dikaloLink'}[channel]??null):null;
+  method==='tara'?({general:'generalLink',whatsapp:'whatsappLink',telegram:'telegramLink',dikalo:'dikaloLink'}[channel]??null):null;
 /** Validation de défense en profondeur sur le navigateur; seule l'API est autorité. */
 export function validatePublicCheckoutResponse(response, method, messagingChannel=null) {
   if (!response || typeof response!=='object' || Array.isArray(response) ||
@@ -85,7 +85,7 @@ export function validatePublicCheckoutResponse(response, method, messagingChanne
         typeof response.paymentUrl!=='string' || response.paymentUrl.length>2048) fail('WRONG_CHANNEL');
     const url=response.paymentUrl;
     if (response.linkField==='smsLink' && /^sms:/i.test(url)) {
-      if (!/^sms:(?:[+0-9,;]*)?(?:\?[^#]*)?$/i.test(url)) fail('UNSAFE_URL');
+      if (!/^sms:(?:\+[1-9][0-9]{6,14})?(?:\?body=[A-Za-z0-9._~%\-]*)?$/i.test(url)) fail('UNSAFE_URL');
       return Object.freeze(response);
     }
     let parsed;
@@ -93,8 +93,10 @@ export function validatePublicCheckoutResponse(response, method, messagingChanne
     if (parsed.protocol!=='https:' || parsed.username || parsed.password || parsed.hash ||
         !PROVIDER_HOSTS.has(parsed.hostname.toLowerCase())) fail('UNSAFE_URL');
     if (response.linkField==='cardLink' &&
-        (!['taramoney.com','www.taramoney.com'].includes(parsed.hostname) || !parsed.pathname.startsWith('/card/'))) fail('WRONG_CHANNEL');
-    if (parsed.pathname.startsWith('/pay/') && response.linkField!=='smsLink') fail('GENERIC_LINK_FORBIDDEN');
+        (!['taramoney.com','www.taramoney.com'].includes(parsed.hostname) || !/^\/(?:card|cardpay)\/.+/.test(parsed.pathname))) fail('WRONG_CHANNEL');
+    if (response.linkField==='generalLink' &&
+        (!['taramoney.com','www.taramoney.com'].includes(parsed.hostname) || !/^\/pay\/.+/.test(parsed.pathname))) fail('WRONG_CHANNEL');
+    if (parsed.pathname.startsWith('/pay/') && response.linkField!=='generalLink') fail('GENERIC_LINK_FORBIDDEN');
   } else if (response.paymentUrl!=null || response.linkField!=null) fail('PREMATURE_URL');
   return Object.freeze(response);
 }

@@ -42,7 +42,7 @@ export function preparePublicOrderRequest(raw) {
       !COUNTRY.test(raw.country) || !METHODS.has(raw.method)) fail('PDC_PUBLIC_ORDER_INVALID');
 
   // Les options de routage doivent être compatibles avec le canal choisi.
-  if (raw.method === 'tara' && !['whatsapp','telegram','dikalo'].includes(raw.messagingChannel))
+  if (raw.method === 'tara' && !['general','whatsapp','telegram','dikalo'].includes(raw.messagingChannel))
     fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');
   if (raw.method !== 'tara' && raw.messagingChannel != null)
     fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');

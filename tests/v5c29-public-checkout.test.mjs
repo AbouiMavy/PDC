@@ -56,3 +56,17 @@ test('sans lien issued aucune URL cachée ne sort',()=>{
   assert.equal(validatePublicCheckoutResponse(r,'mobile').status,'manual_review');
   assert.throws(()=>validatePublicCheckoutResponse({...r,paymentUrl:'https://wa.me/123'},'mobile'));
 });
+
+test('V5C42 : page multi-moyens explicite, cardpay et SMS normalisé',()=>{
+  const base={status:'issued',paymentId:'a91d4e12-937e-4891-8a58-33a8fc7ad317',
+    currency:'XAF',grossAmountXaf:'500',paymentConfirmed:false,membershipGranted:false};
+  assert.equal(build('donation',{...donor,messagerie:'general'}).messagingChannel,'general');
+  assert.equal(validatePublicCheckoutResponse({...base,linkField:'generalLink',
+    paymentUrl:'https://taramoney.com/pay/123'},'tara','general').status,'issued');
+  assert.equal(validatePublicCheckoutResponse({...base,linkField:'cardLink',
+    paymentUrl:'https://taramoney.com/cardpay/@123@500'},'carte').status,'issued');
+  assert.equal(validatePublicCheckoutResponse({...base,linkField:'smsLink',
+    paymentUrl:'sms:+237640154040?body=Don%20PDC'},'mobile').status,'issued');
+  assert.throws(()=>validatePublicCheckoutResponse({...base,linkField:'generalLink',
+    paymentUrl:'https://evil.example/pay/123'},'tara','general'));
+});

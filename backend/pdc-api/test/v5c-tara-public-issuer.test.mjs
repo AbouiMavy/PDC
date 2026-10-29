@@ -16,7 +16,7 @@ const LINKS={status:'SUCCESS',generalLink:'https://taramoney.com/pay/123456',
   cardLink:'https://taramoney.com/card/123456',
   whatsappLink:'https://wa.me/?text=payer',telegramLink:'https://t.me/share/url?url=valid',
   dikaloLink:'https://www.dklo.co/share/dikalo/123',smsLink:'https://www.dklo.co/share/sms/123'};
-const SPECS=[['mobile',null,'smsLink'],['tara','whatsapp','whatsappLink'],
+const SPECS=[['tara','general','generalLink'],['mobile',null,'smsLink'],['tara','whatsapp','whatsappLink'],
   ['tara','telegram','telegramLink'],['tara','dikalo','dikaloLink'],['carte',null,'cardLink']];
 function fixture({method='mobile',messagingChannel=null,providerLinks=LINKS,
   failNetwork=false,failSave=false,claimSuccess=true,initialState='reserved',tamper=false,

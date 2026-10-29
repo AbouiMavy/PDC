@@ -63,10 +63,23 @@ function validTaraShareLink(value, field) {
   if (typeof value !== 'string' || value.length < 7 || value.length > 2048 ||
       /[\u0000-\u001f\u007f]/.test(value)) fail('PDC_TARA_PAYMENT_LINK_INVALID');
   if (field==='smsLink' && /^sms:/i.test(value)) {
-    // Un SMS est un partage, pas une preuve de paiement.
-    if (!/^sms:(?:[+0-9,;]*)?(?:\?[^#]*)?$/i.test(value))
+    // Le prestataire renvoie aussi sms://+numero?body=... .
+    // Normaliser en sms:+numero?body=... et refuser tout autre champ/URI.
+    const match=/^sms:(?:\/\/)?(\+[1-9][0-9]{6,14})?\/?(?:(?:\?&?|;\?&?|;)body=([^#]*))?$/i.exec(value);
+    if (!match || (!match[1] && match[2]===undefined))
       fail('PDC_TARA_PAYMENT_LINK_INVALID');
-    return value;
+    let suffix='';
+    if (match[2]!==undefined) {
+      let decoded;
+      try {decoded=decodeURIComponent(match[2]);}
+      catch {fail('PDC_TARA_PAYMENT_LINK_INVALID');}
+      if (/[\u0000-\u001f\u007f]/.test(decoded)) fail('PDC_TARA_PAYMENT_LINK_INVALID');
+      suffix='?body='+encodeURIComponent(decoded).replace(/[!'()*]/g,
+        c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+    }
+    const normalized='sms:'+(match[1]??'')+suffix;
+    if (normalized.length>2048) fail('PDC_TARA_PAYMENT_LINK_INVALID');
+    return normalized;
   }
   let u;
   try { u = new URL(value); } catch { fail('PDC_TARA_PAYMENT_LINK_INVALID'); }
@@ -79,8 +92,11 @@ function validProviderPayUrl(value, expectedPrefix) {
   let u;
   try { u = new URL(value); } catch { fail('PDC_TARA_PAYMENT_LINK_INVALID'); }
   // URLs de paiement documentées par Tara, pas de redirection arbitraire fournie à React.
+  const pathOK=expectedPrefix==='/card/'
+    ? /^\/(?:card|cardpay)\/.+/.test(u.pathname)
+    : u.pathname.startsWith(expectedPrefix) && u.pathname.length>expectedPrefix.length;
   if (u.protocol !== 'https:' || !['taramoney.com', 'www.taramoney.com'].includes(u.hostname) ||
-      !u.pathname.startsWith(expectedPrefix) || u.username || u.password || u.hash)
+      !pathOK || u.username || u.password || u.hash)
     fail('PDC_TARA_PAYMENT_LINK_INVALID');
   return u.toString();
 }
@@ -150,7 +166,7 @@ export function makeTaraServerClient({ apiKey, businessId, environment = 'disabl
   return Object.freeze({
     async createPaymentLink(input,{selectedField=null}={}) {
       const allowed=['smsLink','whatsappLink','telegramLink',
-        'dikaloLink','cardLink'];
+        'dikaloLink','cardLink','generalLink'];
       if(selectedField!==null && !allowed.includes(selectedField))
         fail('PDC_TARA_CHANNEL_INVALID');
 
@@ -176,7 +192,7 @@ export function makeTaraServerClient({ apiKey, businessId, environment = 'disabl
           if(typeof value!=='string')return {type:typeof value};
           try {
             const u=new URL(value);
-            return {protocol:u.protocol,host:u.hostname||null};
+            return {protocol:u.protocol,host:u.protocol==='sms:'?'SMS_REDACTED':u.hostname||null};
           }catch {
             return {type:'unparseable'};
           }

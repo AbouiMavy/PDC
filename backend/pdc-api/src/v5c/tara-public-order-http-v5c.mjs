@@ -103,7 +103,7 @@ export function createPublicOrderHttpV5C({repository,enforceRateLimit,verifyHuma
         grossAmountXaf:result.grossAmountXaf,currency:'XAF',
         paymentConfirmed:false,membershipGranted:false};
       if (status==='issued') {
-        if (!['smsLink','whatsappLink','telegramLink','dikaloLink','cardLink'].includes(result.linkField) ||
+        if (!['smsLink','whatsappLink','telegramLink','dikaloLink','cardLink','generalLink'].includes(result.linkField) ||
             typeof result.paymentUrl!=='string' || result.paymentUrl.length<7 ||
             typeof result.productId!=='string' || !/^PDC_[A-Za-z0-9_-]{24}$/.test(result.productId))
           err('PDC_PUBLIC_HTTP_RESULT_INVALID');
