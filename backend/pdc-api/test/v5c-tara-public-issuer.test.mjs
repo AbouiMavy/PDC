@@ -5,6 +5,7 @@ import {makeTaraPublicIssuerV5C} from '../src/v5c/tara-public-issuer-v5c.mjs';
 import {makePublicCheckoutCoordinatorV5C} from '../src/v5c/tara-public-checkout-coordinator-v5c.mjs';
 import {createPublicOrderHttpV5C} from '../src/v5c/tara-public-order-http-v5c.mjs';
 import {makeTaraSelectedChannelPgV5C} from '../src/v5c/tara-selected-channel-pg-v5c.mjs';
+import {makeTaraServerClient} from '../src/v5c/tara-server-client-v5c.mjs';
 
 const P='11111111-1111-4111-8111-111111111111';
 const A='22222222-2222-4222-8222-222222222222';
@@ -18,7 +19,8 @@ const LINKS={status:'SUCCESS',generalLink:'https://taramoney.com/pay/123456',
 const SPECS=[['mobile',null,'smsLink'],['tara','whatsapp','whatsappLink'],
   ['tara','telegram','telegramLink'],['tara','dikalo','dikaloLink'],['carte',null,'cardLink']];
 function fixture({method='mobile',messagingChannel=null,providerLinks=LINKS,
-  failNetwork=false,failSave=false,claimSuccess=true,initialState='reserved',tamper=false}={}) {
+  failNetwork=false,failSave=false,claimSuccess=true,initialState='reserved',tamper=false,
+  overrideTaraClient=null}={}) {
   const calls={sqlOrder:0,reserve:0,claim:0,provider:0,save:0,load:0,unknown:0};
   const quote=quoteFromPrivateDb({quote_id:Q,payer_id:A,kind:'donation',amount_minor:'500',
     currency:'XAF',beneficiary_ids:[]});
@@ -42,8 +44,8 @@ function fixture({method='mobile',messagingChannel=null,providerLinks=LINKS,
       row.linkState='issued';},
     loadIssuedChannel:async()=>{calls.load++;return tamper?{...saved,paymentUrl:'javascript:alert(1)'}:saved;}
   };
-  const taraClient={createPaymentLink:async(input)=>{calls.provider++;
-    assert.equal(input.productId,PID);assert.equal(input.productPrice,500);
+  const taraClient=overrideTaraClient??{createPaymentLink:async(input)=>{calls.provider++;
+    assert.equal(input.productId,PID);assert.equal(input.amountXaf,'500');
     if(failNetwork)throw Error('network timeout');return providerLinks;}};
   const issuer=makeTaraPublicIssuerV5C({taraReservations,channelStore,taraClient,
     returnUrl:'https://pdc.example/return',webHookUrl:'https://pdc.example/hook',
@@ -164,4 +166,42 @@ test('HTTP direct refuse un lien externe même si le dépôt injecté est trompe
       body:JSON.stringify({verificationToken:'test-human-token-123456',order:{}})});
     assert.equal(res.status,503);assert.equal((await res.json()).error,'TEMPORARILY_UNAVAILABLE');
   }finally{await new Promise(resolve=>server.close(resolve));}
+});
+
+test('V5C41 : montant 500 converti une seule fois par le vrai client Tara',async()=>{
+  let calls=0;
+
+  const client=makeTaraServerClient({
+    apiKey:'test_sandbox_key_only',
+    businessId:'PDC_TEST',
+    environment:'sandbox',
+    allowNetwork:true,
+    fetchImpl:async(url,options)=>{
+      calls++;
+      assert.equal(url,'https://www.dklo.co/api/tara/paymentlinks');
+      const body=JSON.parse(options.body);
+      assert.equal(body.productPrice,500);
+      assert.equal(body.productId,PID);
+      assert.equal(body.businessId,'PDC_TEST');
+      assert.equal(Object.hasOwn(body,'amountXaf'),false);
+      assert.equal(Object.hasOwn(body,'environment'),false);
+      return {
+        ok:true,
+        text:async()=>JSON.stringify(LINKS)
+      };
+    }
+  });
+
+  const f=fixture({overrideTaraClient:client});
+  const first=await f.service.create(f.raw);
+
+  assert.equal(first.status,'issued');
+  assert.equal(first.linkField,'smsLink');
+  assert.equal(first.paymentConfirmed,false);
+  assert.equal(f.calls.save,1);
+  assert.equal(calls,1);
+
+  const retry=await f.service.create(f.raw);
+  assert.deepEqual(retry,first);
+  assert.equal(calls,1);
 });

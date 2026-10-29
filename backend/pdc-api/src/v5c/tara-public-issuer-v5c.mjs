@@ -1,7 +1,6 @@
 // V5-C.27 — émission unique, persistée et contrôlée par canal ; DEV seulement.
 // Aucune émission automatique après une erreur incertaine.
 import { V5CError, preparePrivateCheckout } from './contracts.mjs';
-import { makeTaraLinkInput } from './tara-server-client-v5c.mjs';
 import { selectTaraPaymentLink, validateStoredTaraChannelLink } from './tara-channel-links-v5c.mjs';
 
 const fail = code => { throw new V5CError(code); };
@@ -55,12 +54,14 @@ export function makeTaraPublicIssuerV5C({taraReservations,channelStore,taraClien
     // Il interdit une nouvelle émission automatique.
     let stage='build';
     try {
-      const input=makeTaraLinkInput({
+      // Le client Tara transforme amountXaf en productPrice
+      // UNE SEULE FOIS avant l'appel réseau.
+      const input={
         productId:row.productId,
         productName:order.quote.kind==='donation'?'Don au PDC':'Première adhésion PDC',
         productDescription:'Contribution PDC - paiement de commande publique',
         amountXaf:order.quote.amountMinor,returnUrl,webHookUrl,
-      });
+      };
       stage='provider';
       const links=await taraClient.createPaymentLink(
         input,{selectedField:field});
