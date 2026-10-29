@@ -50,3 +50,9 @@ test('R4 SQL: 2 allocations bornees, paiement unique et SQL privé',()=>{
  assert.equal((sql.match(new RegExp(confirmationUpdate.source,'gi'))||[]).length,1,
    'une seule fonction peut confirmer le paiement');
 });
+
+test('R4 préserve le canal general de V5-C.42',()=>{
+ const sql=readFileSync(new URL('../../../supabase/migrations/20261029004510_pdc_v5c45_annual_shared_checkout_dev.sql',import.meta.url),'utf8');
+ assert.match(sql,/v_channel NOT IN \('general','whatsapp','telegram','dikalo'\)/);
+ assert.doesNotMatch(sql,/v_channel NOT IN \('whatsapp','telegram','dikalo'\)/);
+});

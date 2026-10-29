@@ -40,7 +40,7 @@ BEGIN
      v_digest IS NULL OR v_digest !~ '^[a-f0-9]{64}$' OR
      v_kind NOT IN ('donation','individual_initial') OR v_kind IS NULL OR
      v_method NOT IN ('mobile','tara','carte','virement') OR v_method IS NULL OR
-     (v_method='tara' AND v_channel NOT IN ('whatsapp','telegram','dikalo')) OR
+     (v_method='tara' AND v_channel NOT IN ('general','whatsapp','telegram','dikalo')) OR
      (v_method<>'tara' AND v_channel IS NOT NULL) OR
      (v_method='tara' AND v_channel IS NULL) OR
      v_country IS NULL OR v_country !~ '^[A-Z]{2}$' OR
