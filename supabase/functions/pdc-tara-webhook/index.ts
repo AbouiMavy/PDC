@@ -1,3 +1,4 @@
+import {classifyWebhookRecord} from './record-outcome.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2';
 
 const MAX_BYTES = 16384;
@@ -40,7 +41,13 @@ Deno.serve(async (req) => {
   const secret = Deno.env.get('PDC_TARA_WEBHOOK_TOKEN');
   const businessId = Deno.env.get('PDC_TARA_BUSINESS_ID');
 
-  if (!secret || !businessId) return reply(503);
+  if (!secret || !businessId) {
+    console.error('PDC_WEBHOOK_CONFIG_MISSING', {
+      tokenConfigured: Boolean(secret),
+      businessConfigured: Boolean(businessId)
+    });
+    return reply(503);
+  }
 
   const url = new URL(req.url);
   const suppliedToken = url.searchParams.get('token') || '';
@@ -117,7 +124,15 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!supabaseUrl || !serviceKey) return reply(503);
+  if (!supabaseUrl || !serviceKey) {
+    console.error('PDC_WEBHOOK_SUPABASE_CONFIG_MISSING', {
+      urlConfigured: Boolean(supabaseUrl),
+      legacyKeyConfigured: Boolean(serviceKey),
+      newSecretKeysConfigured:
+        Boolean(Deno.env.get('SUPABASE_SECRET_KEYS'))
+    });
+    return reply(503);
+  }
 
   try {
     const admin = createClient(supabaseUrl, serviceKey, {
@@ -135,14 +150,38 @@ Deno.serve(async (req) => {
       }
     );
 
-    if (error) return reply(503);
+    // La prise en charge est distinguée du simple HTTP 200.
+    // Produit inconnu, réponse inattendue, erreur : pas d'accusé de réception.
+    const outcome=classifyWebhookRecord({data,error});
+    if (!outcome.received) {
+      if (error) {
+        console.error('PDC_WEBHOOK_RPC_FAILED',JSON.stringify({
+          code:typeof error.code==='string'?error.code:'UNKNOWN'
+        }));
+      } else {
+        console.warn('PDC_WEBHOOK_RECORD_REJECTED',
+          JSON.stringify({code:outcome.code}));
+      }
+      return reply(outcome.httpStatus,outcome.received);
+    }
+
+
+    if (error) {
+      console.error('PDC_WEBHOOK_RPC_FAILED', {
+        code: String(error.code ?? 'UNKNOWN').slice(0, 40)
+      });
+      return reply(503);
+    }
 
     // Produit inconnu : notification ignorée.
     // Doublon : la fonction SQL existante le dédoublonne.
-    if (data === false) return reply(200,true);
+    if (data === false) return reply(422,false);
 
     return reply(200,true);
-  } catch {
+  } catch (error) {
+    console.error('PDC_WEBHOOK_EXCEPTION', {
+      type: error instanceof Error ? error.name : 'UNKNOWN'
+    });
     return reply(503);
   }
 });
