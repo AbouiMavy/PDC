@@ -10,7 +10,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/v1/public/orders': {
-        target: 'http://127.0.0.1:8788',
+        target: process.env.PDC_V5C41_PROXY === 'sandbox'
+          ? 'http://127.0.0.1:8789'
+          : 'http://127.0.0.1:8788',
         changeOrigin: false,
         xfwd: false,
         configure(proxy) {
