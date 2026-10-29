@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import DonForm from '../components/DonForm/DonForm';
+import PublicCheckoutV5C29, {publicCheckoutSandboxEnabled} from '../components/PaymentMethods/PublicCheckoutV5C29';
 import './Soutenir.css';
 
 export default function Soutenir() {
@@ -45,8 +46,11 @@ export default function Soutenir() {
         <div><dt>{t('flow.municipality')}</dt><dd>{review.commune}</dd></div>
         <div><dt>{t('flow.email')}</dt><dd>{review.email}</dd></div>
       </dl>
-      <p className="pdc-soutenir-draft">{t('flow.noPayment')}</p>
-      <p className="pdc-soutenir-draft">{t(review.methode==='virement'?'flow.bankPending':'flow.paymentUnavailable')}</p>
+      {publicCheckoutSandboxEnabled()
+        ? <PublicCheckoutV5C29 source="donation" data={review}
+            language={i18n.resolvedLanguage?.startsWith('en')?'en':'fr'}/>
+        : <><p className="pdc-soutenir-draft">{t('flow.noPayment')}</p>
+           <p className="pdc-soutenir-draft">{t(review.methode==='virement'?'flow.bankPending':'flow.paymentUnavailable')}</p></>}
       <button type="button" className="pdc-soutenir-back" onClick={()=>switchStep(2)}>← {t('flow.edit')}</button>
     </section>}
   </main>;

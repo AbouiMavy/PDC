@@ -16,7 +16,13 @@ test('Les champs obligatoires du membre sont conservés, sans champ Sexe', () =>
 });
 
 test('Identité : nom/prénom et date/lieu de naissance sont appariés', () => {
-  const identity = jsx.slice(jsx.indexOf(gridPattern, jsx.indexOf('<h2>{t.personal}</h2>')));
+  const firstField = jsx.indexOf('id="a-last"');
+  assert.ok(firstField >= 0, 'Champ nom absent');
+
+  const gridStart = jsx.lastIndexOf(gridPattern, firstField);
+  assert.ok(gridStart >= 0, 'Grille identité absente');
+
+  const identity = jsx.slice(gridStart);
   assert.match(identity, /id="a-last"[\s\S]*id="a-first"[\s\S]*id="a-dob"[\s\S]*id="a-birthplace"/);
   const identityRow = identity.slice(0, identity.indexOf(gridPattern, gridPattern.length));
   assert.equal(identityRow.match(/className="pdc-adhesion-field"/g)?.length, 4);

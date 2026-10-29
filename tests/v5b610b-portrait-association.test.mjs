@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { createPortraitIngestService } from '../backend/pdc-api/src/portrait-ingest-v5b610b.mjs';
 import { portraitObjectKey } from '../backend/pdc-api/src/portrait-policy.mjs';
 import { createPortraitRepositoryV5B610B } from '../backend/pdc-api/src/portrait-repository-v5b610b.mjs';
@@ -86,7 +87,7 @@ test('10. existing public API is not imported by the upload module', async()=>{
 
 test('11. normalizing actual fictitious PNG outputs JPEG without embedding original PNG',async(t)=>{
   let sharp;
-  try {sharp=(await import('sharp')).default;} catch { return t.skip('Installer sharp dans backend/pdc-api pour verifier le decodeur reel.'); }
+  try {sharp=createRequire(new URL('../backend/pdc-api/package.json', import.meta.url))('sharp');} catch { return t.skip('Installer sharp dans backend/pdc-api pour verifier le decodeur reel.'); }
   const {readFile}=await import('node:fs/promises');
   const {normalizePrivatePortrait}=await import('../backend/pdc-api/src/portrait-normalize-v5b610b.mjs');
   const buf=await readFile(new URL('./assets/fictive-portrait-test.png',import.meta.url));
@@ -99,7 +100,7 @@ test('11. normalizing actual fictitious PNG outputs JPEG without embedding origi
 
 test('12. image MIME must match decoded bytes; file extension alone is insufficient',async(t)=>{
   let sharp;
-  try {sharp=(await import('sharp')).default;} catch { return t.skip('Installer sharp dans backend/pdc-api.'); }
+  try {sharp=createRequire(new URL('../backend/pdc-api/package.json', import.meta.url))('sharp');} catch { return t.skip('Installer sharp dans backend/pdc-api.'); }
   const {readFile}=await import('node:fs/promises');
   const {normalizePrivatePortrait}=await import('../backend/pdc-api/src/portrait-normalize-v5b610b.mjs');
   const buf=await readFile(new URL('./assets/fictive-portrait-test.png',import.meta.url));
