@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import PaymentMethods from '../components/PaymentMethods/PaymentMethods';
+import PublicCheckoutV5C29, {publicCheckoutSandboxEnabled} from '../components/PaymentMethods/PublicCheckoutV5C29';
+import '../components/DonForm/DonForm.css';
 import { PAYS } from '../components/DonForm/pays';
 import { INDICATIFS } from '../components/DonForm/indicatifs';
 import { TERRITOIRES } from '../components/DonForm/territoires';
@@ -48,7 +51,7 @@ const validatePhone = (raw,pays) => {
 };
 
 export default function Adhesion() {
-  const {i18n}=useTranslation();
+  const {i18n,t:donationText}=useTranslation();
   const lang=i18n.resolvedLanguage?.startsWith('en')?'en':'fr';
   const t=getAdhesionText(lang);
   const navigate=useNavigate();
@@ -56,6 +59,8 @@ export default function Adhesion() {
   const [expanded,setExpanded]=useState(false);
   const [form,setForm]=useState(defaultValues);
   const [error,setError]=useState('');
+  const [methode,setMethode]=useState('mobile');
+  const [messagerie,setMessagerie]=useState('whatsapp');
   // Uniquement en mémoire, aucune transmission ni persistance dans cette prévisualisation.
   const [photoMembre,setPhotoMembre]=useState(null);
   const [photoPartenaire,setPhotoPartenaire]=useState(null);
@@ -147,10 +152,12 @@ export default function Adhesion() {
       <button className="pdc-adhesion-back" type="button" onClick={()=>next(1)}>← {t.back}</button>
       <h1>{t.title}</h1>
       <form onSubmit={review} className="pdc-adhesion-form">
+        <h2>1. {t.type.replace(/\s*\*\s*$/, '')}</h2>
         <fieldset><legend>{t.type}</legend><div className="pdc-adhesion-radio">
           {[['nouvelle',t.first],['renouvellement',t.renew]].map(([val,label])=><label key={val}><input type="radio" name="type" value={val} checked={form.type===val} onChange={()=>update('type',val)}/> {label}</label>)}
         </div></fieldset>
         {!isNew ? <div className="pdc-adhesion-panel">
+          <h2>2. {t.personal}</h2>
           <p>{t.renewHint}</p>
           <div className="pdc-adhesion-grid">
             <div className="pdc-adhesion-field"><label htmlFor="a-number">{t.uniqueId}</label><input id="a-number" value={form.numeroMilitant} onChange={e=>update('numeroMilitant',e.target.value)} required maxLength={100}/></div>
@@ -158,7 +165,7 @@ export default function Adhesion() {
           </div>
           <p className="pdc-adhesion-alert">{t.remainderUnavailable}</p>
         </div> : <>
-          <h2>{t.personal}</h2>
+          <h2>2. {t.personal}</h2>
           <fieldset><legend>{t.civility}</legend><div className="pdc-adhesion-radio">{[['Madame',t.ms],['Monsieur',t.mr]].map(([v,label])=><label key={v}><input type="radio" name="civilite" checked={form.civilite===v} onChange={()=>update('civilite',v)}/>{label}</label>)}</div></fieldset>
           <div className="pdc-adhesion-grid">
             <div className="pdc-adhesion-field"><label htmlFor="a-last">{t.last}</label><input id="a-last" autoComplete="family-name" value={form.nom} onChange={e=>update('nom',e.target.value)} required maxLength={100}/></div>
@@ -218,7 +225,7 @@ export default function Adhesion() {
               <aside className="pdc-adhesion-inline-help">{t.territorialHint}</aside>
             </div>
           </>}
-          <h2>{t.annual}</h2>
+          <h2>3. {t.annual}</h2>
           {domestic && <p className="pdc-adhesion-fee-note"><strong>{t.initial} : {money(2000,'XAF')}.</strong> {t.initialExplanation}</p>}
           {domestic?<>
             <p className="pdc-adhesion-section-intro">{t.cmRatesIntro}</p>
@@ -244,7 +251,7 @@ export default function Adhesion() {
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-phone">{t.partnerPhone}</label><div className="pdc-adhesion-phone"><span>{INDICATIFS[form.pays]||'+'}</span><input id="a-partner-phone" type="tel" inputMode="tel" required maxLength={24} value={form.telephonePartenaire} onChange={e=>update('telephonePartenaire',e.target.value)}/></div></div>
             </div><label className="pdc-adhesion-check"><input type="checkbox" checked={form.consentPartenaire} onChange={e=>update('consentPartenaire',e.target.checked)} /> {t.partnerConsent}</label></div>}
           </>}
-          <h2>{t.cardSection}</h2>
+          <h2>4. {t.cardSection}</h2>
           <label className="pdc-adhesion-check"><input type="checkbox" checked={form.demandeCarte} onChange={e=>{
             update('demandeCarte',e.target.checked);
             if(!e.target.checked){setPhotoMembre(null);setPhotoPartenaire(null);}
@@ -277,8 +284,12 @@ export default function Adhesion() {
           </div>}
           {amountError && <p className="pdc-adhesion-error" role="alert">{t.errors.partial}</p>}
         </>}
+        <div className="pdc-don-form pdc-adhesion-payment-methods">
+          <PaymentMethods methode={methode} onMethodeChange={setMethode}
+            messagerie={messagerie} onMessagerieChange={setMessagerie} titleId="pdc-adhesion-paiement" titlePrefix="5. "/>
+        </div>
         {isNew && <p className="pdc-adhesion-fee-note">{t.membershipLegal}</p>}
-        <h2>{t.memberStatements}</h2>
+        <h2>6. {t.memberStatements}</h2>
         <div className="pdc-adhesion-documents small">{FICHIERS.map((url,i)=><a key={url} href={url} target="_blank" rel="noreferrer">{t.docs[i]} ↗</a>)}</div>
         <p className="pdc-adhesion-alert">{t.termsMissing}</p>
         <label className="pdc-adhesion-check"><input type="checkbox" checked={form.accepteStatuts} onChange={e=>update('accepteStatuts',e.target.checked)} required/> {t.accept}</label>
@@ -313,13 +324,17 @@ export default function Adhesion() {
           <div><dt>{t.currentPayment}</dt><dd><strong>{money(amounts?.totalImmediate||0,amounts?.devise)}</strong></dd></div>
           {domestic&&<div><dt>{t.remaining}</dt><dd>{money(amounts?.resteAnnuel||0,'XAF')}</dd></div>}
         </> : <><div><dt>{t.uniqueId}</dt><dd>{form.numeroMilitant}</dd></div><div><dt>{t.email}</dt><dd>{form.email}</dd></div><div><dt>{t.remaining}</dt><dd>{t.remainderUnavailable}</dd></div></>}
+        <div><dt>{t.payment}</dt><dd>{donationText(`donation.methods.${methode}`)}
+          {methode==='tara' ? ` — ${messagerie==='telegram'?'Telegram':messagerie==='dikalo'?'Dikalo':'WhatsApp'}` : ''}</dd></div>
       </dl>
       {isNew && form.demandeCarte && <p className="pdc-adhesion-alert" role="status">
         {lang==='en'
           ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
           : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
       </p>}
-      <p className="pdc-adhesion-alert">{t.noPayment}</p>
+      {publicCheckoutSandboxEnabled()
+        ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
+        : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
       <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button><button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button></div>
     </section>}
   </main>;

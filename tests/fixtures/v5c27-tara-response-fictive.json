@@ -1,0 +1,9 @@
+{
+  "status": "SUCCESS",
+  "generalLink": "https://taramoney.com/pay/123456",
+  "cardLink": "https://taramoney.com/card/123456",
+  "whatsappLink": "https://wa.me/?text=faux",
+  "telegramLink": "https://t.me/share/url?url=faux",
+  "dikaloLink": "https://dklo.co/share/dikalo/test",
+  "smsLink": "sms:?body=Paiement%20fictif"
+}
