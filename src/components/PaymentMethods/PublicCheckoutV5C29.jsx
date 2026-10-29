@@ -1,4 +1,6 @@
 import './PublicCheckoutV5C29.css';
+import {useNavigate} from 'react-router-dom';
+import {makePendingReceiptV5C44} from '../../features/payments/manual-receipt-v5c44.mjs';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {buildPublicOrderPayload,validatePublicCheckoutResponse} from '../../features/payments/public-checkout-payload-v5c29.mjs';
 
@@ -70,6 +72,7 @@ const messages={
 
 export default function PublicCheckoutV5C29({source,data,language='fr'}){
   const lang=language==='en'?'en':'fr',m=messages[lang];
+  const navigate=useNavigate();
   const enabled=publicCheckoutSandboxEnabled();
   const [token,setToken]=useState(''),[status,setStatus]=useState(null);
   const [started,setStarted]=useState(false),[busy,setBusy]=useState(false);
@@ -127,6 +130,12 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
             ? (lang==='fr'?'Ouvrir le SMS TaraMoney':'Open TaraMoney SMS') : m.open}</a>
           {result.linkField==='smsLink'&&<p>{m.sms}</p>}
         </>}
+        <button className="pdc-checkout-v5c29__submit" type="button" onClick={()=>{
+          // Attestation de réception, PAS paiement ou admission.
+          const pdcReceipt=makePendingReceiptV5C44(source,result);
+          navigate(source==='membership'?'/adhesion/merci':'/soutenir/merci',
+            {state:{pdcReceipt}});
+        }}>{lang==='fr'?'Terminer et conserver ma référence':'Finish and keep my reference'}</button>
       </>}
     </>}
   </section>;

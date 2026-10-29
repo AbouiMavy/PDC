@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
+import PendingManualReceiptV5C44 from '../components/PaymentMethods/PendingManualReceiptV5C44';
+import {readPendingReceiptV5C44} from '../features/payments/manual-receipt-v5c44.mjs';
 import { useTranslation } from 'react-i18next';
 import './Merci.css';
 
@@ -15,6 +17,9 @@ export default function Merci() {
   const lang = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const [failedImage,setFailedImage] = useState('');
   const imagePath = `/images/merci-pdc-${lang}.png`;
+  const location=useLocation();
+  const receipt=readPendingReceiptV5C44(location.state,'donation');
+  if(receipt)return <PendingManualReceiptV5C44 receipt={receipt} language={lang}/>;
   return <main className="pdc-merci-page"><section className="pdc-merci-card">
     <h1>{t('thanks.title')}</h1>
     <h2>{t(preview?'thanks.preview':'thanks.pending')}</h2>

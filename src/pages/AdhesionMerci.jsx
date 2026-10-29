@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
+import PendingManualReceiptV5C44 from '../components/PaymentMethods/PendingManualReceiptV5C44';
+import {readPendingReceiptV5C44} from '../features/payments/manual-receipt-v5c44.mjs';
 import { useTranslation } from 'react-i18next';
 import { getAdhesionText } from '../features/adhesion/textes';
 import './Adhesion.css';
@@ -13,6 +15,9 @@ export default function AdhesionMerci(){
   const preview=params.get('preview')==='1';
   const imagePath=`/images/merci-adhesion-pdc-${lang}.png`;
   const [broken,setBroken]=useState('');
+  const location=useLocation();
+  const receipt=readPendingReceiptV5C44(location.state,'membership');
+  if(receipt)return <PendingManualReceiptV5C44 receipt={receipt} language={lang}/>;
   return <main className="pdc-adhesion pdc-adhesion-thanks"><section className="pdc-adhesion-card">
     <h1>{t.thanksTitle}</h1>
     <h2>{preview?t.thanksPreview:t.thanksPending}</h2>
