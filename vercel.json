@@ -10,6 +10,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/adhesion/confirmer-partenaire",
+      "destination": "/index.html"
+    },
+    {
       "source": "/adhesion/merci",
       "destination": "/index.html"
     },

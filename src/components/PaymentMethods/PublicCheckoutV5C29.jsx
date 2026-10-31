@@ -1,6 +1,7 @@
 import './PublicCheckoutV5C29.css';
 import {useNavigate} from 'react-router-dom';
 import {makePendingReceiptV5C44} from '../../features/payments/manual-receipt-v5c44.mjs';
+import {savePendingReturnR5} from '../../features/payments/return-session-r5.mjs';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {buildPublicOrderPayload,validatePublicCheckoutResponse} from '../../features/payments/public-checkout-payload-v5c29.mjs';
 
@@ -13,7 +14,7 @@ export const publicCheckoutSandboxEnabled = () =>
   typeof import.meta.env.VITE_PDC_V5C29_TURNSTILE_SITE_KEY==='string' &&
   import.meta.env.VITE_PDC_V5C29_TURNSTILE_SITE_KEY.length>8;
 
-function HumanChallenge({onToken,siteKey}) {
+export function HumanChallenge({onToken,siteKey}) {
   const node=useRef(null);
   useEffect(()=>{
     let widget=null,disposed=false;
@@ -132,9 +133,8 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
             ? 'Ouvrez le lien sécurisé TaraMoney. Revenez ensuite sur cette page pour conserver vos références PDC.'
             : 'Open the secure TaraMoney link. Then return here to keep your PDC references.'}</p>
           <a className="pdc-checkout-v5c29__pay-link" href={result.paymentUrl}
-             target={result.paymentUrl.startsWith('sms:')?undefined:'_blank'}
              rel="noopener noreferrer" referrerPolicy="no-referrer"
-             onClick={()=>setLinkOpened(true)}>
+             onClick={()=>{setLinkOpened(true);savePendingReturnR5(source,result);}}>
             {result.linkField==='smsLink'
               ? (lang==='fr'?'Ouvrir le lien SMS TaraMoney':'Open TaraMoney SMS link')
               : (lang==='fr'?`Payer ${result.grossAmountXaf} FCFA sur TaraMoney ↗`

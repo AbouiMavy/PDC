@@ -9,6 +9,7 @@ import Adhesion from './pages/Adhesion';
 import AdhesionMerci from './pages/AdhesionMerci';
 import EspaceMilitant from './pages/EspaceMilitant';
 import RetourPaiementV5C44 from './pages/RetourPaiementV5C44';
+import ConfirmerPartenaireR5 from './pages/ConfirmerPartenaireR5';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="mon-espace" element={<EspaceMilitant />} />
           <Route path="soutenir/merci" element={<Merci />} />
           <Route path="retour-paiement" element={<RetourPaiementV5C44 />} />
+          <Route path="adhesion/confirmer-partenaire" element={<ConfirmerPartenaireR5 />} />
           <Route path="soutenir" element={<Soutenir />} />
         </Route>
       </Routes>

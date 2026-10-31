@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PaymentMethods from '../components/PaymentMethods/PaymentMethods';
 import PublicCheckoutV5C29, {publicCheckoutSandboxEnabled} from '../components/PaymentMethods/PublicCheckoutV5C29';
+import PublicDiasporaCheckoutR5, {diasporaR5Enabled} from '../components/PaymentMethods/PublicDiasporaCheckoutR5';
 import '../components/DonForm/DonForm.css';
 import { PAYS } from '../components/DonForm/pays';
 import { INDICATIFS } from '../components/DonForm/indicatifs';
@@ -27,7 +28,7 @@ const defaultValues = {
   regionEtrangere:'',departementEtranger:'',ville:'',codePostal:'',
   rattachementRegion:'',rattachementDepartement:'',rattachementCommune:'',rattachementAutre:'',
   categorie:'rural_etudiant',modeCotisation:'aucun',versementPartiel:'',formule:'simple',
-  nomPartenaire:'',prenomPartenaire:'',civilitePartenaire:'',dateNaissancePartenaire:'',lieuNaissancePartenaire:'',emailPartenaire:'',telephonePartenaire:'',consentPartenaire:false,
+  nomPartenaire:'',prenomPartenaire:'',civilitePartenaire:'',dateNaissancePartenaire:'',lieuNaissancePartenaire:'',emailPartenaire:'',telephonePartenaire:'',consentPartenaire:false,accepteConversionDon:false,
   demandeCarte:false,formatCarte:'numerique',
   numeroMilitant:'',accepteStatuts:false,accepteDonnees:false,
 };
@@ -118,7 +119,7 @@ export default function Adhesion() {
     if(!domestic && !form.codePostal.trim())return setError(t.errors.postcode);
     if(!domestic && (!form.rattachementRegion || !form.rattachementDepartement || !rattachementCommune))return setError(t.errors.rattachement);
     if(!amounts)return setError(t.errors.partial);
-    if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validDOB(form.dateNaissancePartenaire) || !form.lieuNaissancePartenaire.trim() || !prefixForCivilite(form.civilitePartenaire) || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire))return setError(t.errors.partner);
+    if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validDOB(form.dateNaissancePartenaire) || !form.lieuNaissancePartenaire.trim() || !prefixForCivilite(form.civilitePartenaire) || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire || !form.accepteConversionDon))return setError(t.errors.partner);
     const photoError=validateCardSelection({requestCard:form.demandeCarte,isCouple:!domestic&&form.formule==='couple',photoMember:photoMembre,photoPartner:photoPartenaire});
     if(photoError)return setError(t.errors[photoError] || t.errors.photo);
     // Préparation locale, sans téléversement ni appel réseau tant que le paiement
@@ -249,7 +250,12 @@ export default function Adhesion() {
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-birthplace">{t.partnerBirthplace}</label><input id="a-partner-birthplace" required maxLength={160} value={form.lieuNaissancePartenaire} onChange={e=>update('lieuNaissancePartenaire',e.target.value)}/></div>
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-email">{t.partnerEmail}</label><input id="a-partner-email" type="email" required value={form.emailPartenaire} onChange={e=>update('emailPartenaire',e.target.value)}/></div>
               <div className="pdc-adhesion-field"><label htmlFor="a-partner-phone">{t.partnerPhone}</label><div className="pdc-adhesion-phone"><span>{INDICATIFS[form.pays]||'+'}</span><input id="a-partner-phone" type="tel" inputMode="tel" required maxLength={24} value={form.telephonePartenaire} onChange={e=>update('telephonePartenaire',e.target.value)}/></div></div>
-            </div><label className="pdc-adhesion-check"><input type="checkbox" checked={form.consentPartenaire} onChange={e=>update('consentPartenaire',e.target.checked)} /> {t.partnerConsent}</label></div>}
+            </div><label className="pdc-adhesion-check"><input type="checkbox" checked={form.consentPartenaire} onChange={e=>update('consentPartenaire',e.target.checked)} /> {t.partnerConsent}</label>
+              <label className="pdc-adhesion-check"><input type="checkbox" checked={form.accepteConversionDon} onChange={e=>update('accepteConversionDon',e.target.checked)}/>
+              {lang==='en'
+                ? 'I expressly authorize the PDC, if my partner refuses or does not confirm their application by email within 14 days, to retain €30 as my individual membership fee and irrevocably allocate the remaining €10 as a donation to the PDC, without refund.'
+                : 'J’autorise expressément le PDC, si mon ou ma partenaire refuse ou ne confirme pas son adhésion par courriel sous 14 jours, à conserver 30 € pour ma cotisation individuelle et à affecter définitivement les 10 € restants à un don au PDC, sans remboursement.'}
+              </label></div>}
           </>}
           <h2>4. {t.cardSection}</h2>
           <label className="pdc-adhesion-check"><input type="checkbox" checked={form.demandeCarte} onChange={e=>{
@@ -327,15 +333,17 @@ export default function Adhesion() {
         <div><dt>{t.payment}</dt><dd>{donationText(`donation.methods.${methode}`)}
           {methode==='tara' ? ` — ${messagerie==='telegram'?'Telegram':messagerie==='dikalo'?'Dikalo':'WhatsApp'}` : ''}</dd></div>
       </dl>
-      {isNew && form.demandeCarte && <p className="pdc-adhesion-alert" role="status">
+      {isNew && form.demandeCarte && (domestic || !diasporaR5Enabled()) && <p className="pdc-adhesion-alert" role="status">
         {lang==='en'
           ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
           : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
       </p>}
-      {publicCheckoutSandboxEnabled()
-        ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
-        : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
-      <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button>{!publicCheckoutSandboxEnabled()&&<button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button>}</div>
+      {!domestic ? <PublicDiasporaCheckoutR5 data={{form,amounts,methode,messagerie}}
+          photoMember={photoMembre} photoPartner={photoPartenaire} language={lang}/>
+        : publicCheckoutSandboxEnabled()
+          ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
+          : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
+      <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button>{!(domestic?publicCheckoutSandboxEnabled():diasporaR5Enabled())&&<button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button>}</div>
     </section>}
   </main>;
 }
