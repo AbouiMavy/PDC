@@ -174,6 +174,45 @@ test('Émission unique Tara après réservation et claim : prix uniquement de SQ
  assert.ok(seen.some(x=>x.includes('r5_save_tara_link_dev')));
 });
 
+
+test('R5 Tara : bannière bilingue et validation de langue',async()=>{
+  for(const language of ['fr','en']){
+    let calls=0;
+    const pool={query:async(sql)=>{
+      if(sql.startsWith('SELECT current_user'))
+        return {rows:[{role_name:'pdc_r5_intake_writer'}]};
+      if(sql.includes('r5_reserve_tara_intent_dev'))
+        return {rows:[{product_id:PRODUCT,payment_id:UUID2,
+          amount_xaf:'26240',link_state:'reserved'}]};
+      if(sql.includes('r5_claim_tara_link_dev'))return {rows:[{ok:true}]};
+      if(sql.includes('r5_save_tara_link_dev'))return {rows:[{ok:true}]};
+      throw Error('UNEXPECTED_QUERY');
+    }};
+    const tara=await makeDiasporaTaraR5({
+      pool,enabled:true,environment:'sandbox',
+      taraClient:{createPaymentLink:async input=>{
+        calls++;
+        assert.equal(input.amountXaf,'26240');
+        assert.equal(input.productPictureUrl,
+          `https://pdc-portail.vercel.app/images/taramoney/premiere-adhesion-${language}.png`);
+        return {generalLink:'https://taramoney.com/pay/pdc-R5-test'};
+      }},
+      returnUrl:'https://example.test/retour-paiement?kind=adhesion',
+      webHookUrl:'https://example.test/webhook'
+    });
+    const args={orderId:UUID1,sessionToken:'A'.repeat(43),
+      method:'tara',messagingChannel:'general',language};
+    const result=await tara.create(args);
+    assert.equal(result.status,'issued');
+    assert.equal(calls,1);
+    await assert.rejects(
+      tara.create({...args,language:'de'}),
+      /PDC_R5_TARA_LANGUAGE_INVALID/
+    );
+    assert.equal(calls,1);
+  }
+});
+
 test('Frontière HTTP R5 : origine étrangère rejetée avant tout traitement',async()=>{
  let touched=false;
  const svc={create:async()=>{touched=true;return {}},issuePhotoGrant:async()=>({})};

@@ -10,7 +10,10 @@ import {buildPublicOrderPayload,validatePublicCheckoutResponse} from '../../feat
 export const publicCheckoutSandboxEnabled = () =>
   import.meta.env.VITE_PDC_V5C29_CHECKOUT_ENABLED==='true' &&
   import.meta.env.VITE_PDC_V5C29_ENV==='sandbox' &&
-  /^https:\/\/[^/?#]+$/.test(import.meta.env.VITE_PDC_V5C29_API_ORIGIN||'') &&
+  (
+    import.meta.env.VITE_PDC_V5C29_API_ORIGIN === '' ||
+    /^https:\/\/[^/?#]+$/.test(import.meta.env.VITE_PDC_V5C29_API_ORIGIN||'')
+  ) &&
   typeof import.meta.env.VITE_PDC_V5C29_TURNSTILE_SITE_KEY==='string' &&
   import.meta.env.VITE_PDC_V5C29_TURNSTILE_SITE_KEY.length>8;
 
@@ -91,7 +94,7 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
   const requestedMethod=data?.methode;
   const requestedChannel=data?.methode==='tara'?data?.messagerie:null;
   if(!enabled)return null;
-  const apiOrigin=import.meta.env.VITE_PDC_V5C29_API_ORIGIN;
+  const apiOrigin=import.meta.env.VITE_PDC_V5C29_API_ORIGIN || '';
   async function submit(){
     if(started || busy || !order.data || !token)return;
     setStarted(true);setBusy(true);

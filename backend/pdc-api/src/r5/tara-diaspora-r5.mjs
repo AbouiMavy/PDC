@@ -16,9 +16,10 @@ export async function makeDiasporaTaraR5({pool,taraClient,returnUrl,webHookUrl,e
   const role=(await pool.query('SELECT current_user AS role_name')).rows?.[0]?.role_name;
   if(role!=='pdc_r5_intake_writer')fail('ROLE_INVALID');
   return Object.freeze({
-    async create({orderId,sessionToken,method,messagingChannel=null}){
+    async create({orderId,sessionToken,method,messagingChannel=null,language='fr'}){
       if(!UUID.test(orderId??'')||!SESSION.test(sessionToken??'')||!field(method,messagingChannel)||
         (method!=='tara'&&messagingChannel!=null))fail('INPUT_INVALID');
+      if(!['fr','en'].includes(language))fail('LANGUAGE_INVALID');
       const sHash=hash(sessionToken);
       const productId=`PDC_${randomBytes(18).toString('base64url')}`;
       const rows=(await pool.query(`SELECT * FROM pdc_private.r5_reserve_tara_intent_dev(
@@ -52,7 +53,8 @@ export async function makeDiasporaTaraR5({pool,taraClient,returnUrl,webHookUrl,e
         const payment=await taraClient.createPaymentLink({productId:r.product_id,
           productName:'Cotisation diaspora PDC',
           productDescription:'Cotisation diaspora PDC - paiement de demande non assimilable à une admission',
-          amountXaf:String(r.amount_xaf),returnUrl,webHookUrl},
+          amountXaf:String(r.amount_xaf),returnUrl,webHookUrl,
+          productPictureUrl:`https://pdc-portail.vercel.app/images/taramoney/premiere-adhesion-${language}.png`},
           {selectedField:field(method,messagingChannel)});
         stage='channel';
         const selected=selectTaraPaymentLink(payment,{method,messagingChannel});

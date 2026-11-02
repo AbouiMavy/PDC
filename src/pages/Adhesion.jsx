@@ -281,7 +281,13 @@ export default function Adhesion() {
               </div>}
             </div>
             {!domestic&&form.formule==='couple' && <p className="pdc-adhesion-muted">{t.couplePhotosInfo}</p>}
-            <p className="pdc-adhesion-alert">{t.photoStorageWarning}</p>
+            <p className="pdc-adhesion-alert">
+              {!domestic && diasporaR5Enabled()
+                ? (lang === 'en'
+                    ? 'Photos remain on your device until the application is submitted. If a membership card is requested, the selected photos are then uploaded to secure private storage. No card is issued before payment verification and administrative approval.'
+                    : 'Les photos restent sur votre appareil jusqu’à la soumission du dossier. Si une carte de militant est demandée, les photos sélectionnées sont alors déposées dans un espace privé sécurisé. Aucune carte n’est délivrée avant vérification du paiement et validation administrative.')
+                : t.photoStorageWarning}
+            </p>
           </div>}
           {amounts && <div className="pdc-adhesion-amounts" aria-live="polite">
             {domestic && <><div><span>{t.initial}</span><strong>{money(amounts.fraisAdhesion,'XAF')}</strong></div><div><span>{t.paidNow}</span><strong>{money(amounts.versementCotisation,'XAF')}</strong></div></>}

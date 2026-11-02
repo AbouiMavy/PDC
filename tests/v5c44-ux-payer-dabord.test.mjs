@@ -6,7 +6,8 @@ test('44 UX R3: lien de paiement prioritaire et distinct du bouton de fin',()=>{
   const x=read('src/components/PaymentMethods/PublicCheckoutV5C29.jsx');
   assert.match(x,/pdc-checkout-v5c29__pay-link/);
   assert.match(x,/Payer \${result.grossAmountXaf} FCFA sur TaraMoney/);
-  assert.match(x,/onClick=\{\(\)=>setLinkOpened\(true\)\}/);
+  // R5.1: ouvre la phase de references ET conserve le dossier de retour Tara.
+  assert.match(x,/onClick=\{\(\)=>\{\s*setLinkOpened\(true\);\s*savePendingReturnR5\(source,result\);\s*\}\}/);
   assert.match(x,/result.status!==\x27issued\x27\|\|linkOpened/);
   assert.ok(x.indexOf('pdc-checkout-v5c29__pay-link')<x.indexOf('pdc-checkout-v5c29__finish'));
 });
@@ -30,7 +31,8 @@ test('44 UX R3: accusé téléchargeable sans reçus financiers ni appels backen
 });
 test('44 UX R3: pas de prévisualisation concurrente en sandbox',()=>{
   const x=read('src/pages/Adhesion.jsx');
-  assert.match(x,/!publicCheckoutSandboxEnabled\(\)\&\&<button/);
+  // R5.1: pas de bouton de previsualisation si le checkout CM OU diaspora est actif.
+  assert.match(x,/\{!\(domestic\?publicCheckoutSandboxEnabled\(\):diasporaR5Enabled\(\)\)\&\&<button/);
 });
 test('44 UX R3: libellé produit conservé en UTF-8',()=>{
   const x=read('backend/pdc-api/src/v5c/tara-public-issuer-v5c.mjs');

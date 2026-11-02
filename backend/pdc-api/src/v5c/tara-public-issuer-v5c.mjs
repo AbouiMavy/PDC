@@ -62,6 +62,9 @@ export function makeTaraPublicIssuerV5C({taraReservations,channelStore,taraClien
         productName:order.quote.kind==='donation'?'Don au PDC':'Première adhésion PDC',
         productDescription:'Contribution PDC - paiement de commande publique',
         amountXaf:order.quote.amountMinor,returnUrl,webHookUrl,
+        productPictureUrl:order.quote.kind==='donation'
+          ? 'https://pdc-portail.vercel.app/images/taramoney/don-fr.png'
+          : 'https://pdc-portail.vercel.app/images/taramoney/premiere-adhesion-fr.png',
       };
       stage='provider';
       const links=await taraClient.createPaymentLink(

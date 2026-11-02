@@ -107,8 +107,11 @@ try {
       const isAnnual=kind==='membership' && typeof input?.amountXaf==='string' &&
         /^\d+$/.test(input.amountXaf) && BigInt(input.amountXaf)>2000n;
       const image=isAnnual?(pictures.annual??pictures.membership):pictures[kind];
+      const kindParam=kind==='donation'?'don':'adhesion';
+      const returnUrl=`${cfg.returnUrl}?kind=${kindParam}`;
       return baseTaraClient.createPaymentLink({
         ...input,
+        returnUrl,
         ...(image?{productPictureUrl:image}:{})
       },options);
     }
@@ -185,5 +188,6 @@ try {
     : 'PDC_V5C41_STARTUP_FAILED';
 
   console.error('V5-C.41 REFUSE :',safe);
+  console.error('DEBUG_CAUSE:', error?.name ?? 'Error', error?.code ?? '', message);
   process.exitCode=1;
 }

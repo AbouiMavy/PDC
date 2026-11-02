@@ -11,6 +11,7 @@ const rewrites = config.rewrites;
 const publicPaths = [
   '/histoire',
   '/adhesion',
+  '/adhesion/confirmer-partenaire',
   '/adhesion/merci',
   '/retour-paiement',
   '/soutenir',

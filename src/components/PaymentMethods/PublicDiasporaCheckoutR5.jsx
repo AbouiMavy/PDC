@@ -31,7 +31,7 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
   const api=import.meta.env.VITE_PDC_R5_API_ORIGIN;
   async function post(path,body){
     const r=await fetch(api+path,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body),credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
+      body:JSON.stringify(body),credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
     if(!r.ok)throw Error('PDC_R5_MANUAL_REVIEW');
     return r.json();
   }
@@ -42,7 +42,7 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
     if(typeof g.token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(g.token))throw Error('PDC_R5_INVALID_GRANT');
     const r=await fetch(`${api}/v1/public/r5/photo/${orderId}/${slot}`,{
       method:'POST',headers:{'Content-Type':file.type,'Authorization':`Bearer ${g.token}`},
-      body:file,cache:'no-store',credentials:'omit',redirect:'error',signal:AbortSignal.timeout(20000)});
+      body:file,cache:'no-store',credentials:'same-origin',redirect:'error',signal:AbortSignal.timeout(20000)});
     if(!r.ok||(await r.json())?.status!=='stored_private_pending_admission')throw Error('PDC_R5_PHOTO_NOT_CONFIRMED');
   }
   async function submit(){
@@ -65,7 +65,8 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
       setStage('checkout');
       const raw=await post('/v1/public/r5/checkout',{
         orderId:created.orderId,sessionToken:created.sessionToken,
-        method:data.methode,messagingChannel:data.methode==='tara'?data.messagerie:null});
+        method:data.methode,messagingChannel:data.methode==='tara'?data.messagerie:null,
+        language:language==='en'?'en':'fr'});
       const validated=validatePublicCheckoutResponse(raw,data.methode,
         data.methode==='tara'?data.messagerie:null);
       setResult(validated);setStage('result');
@@ -82,7 +83,8 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
       'This page does not confirm payment. Financial verification and membership approval are separate.'}</p>
     {!started&&<>
       <HumanChallenge siteKey={import.meta.env.VITE_PDC_R5_TURNSTILE_SITE_KEY} onToken={setHuman}/>
-      <button type="button" disabled={!order||!human} onClick={submit}>
+      <button type="button" disabled={!order||!human} onClick={submit}
+        style={{display:"inline-flex",alignItems:"center",justifyContent:"center",backgroundColor:(!order||!human)?"#8b9d91":"#16733d",color:"#fff",padding:"13px 22px",border:"0",borderRadius:"6px",fontWeight:700,fontSize:"1rem",cursor:(!order||!human)?"not-allowed":"pointer",opacity:(!order||!human)?0.7:1}}>
         {fr?'Enregistrer le dossier et préparer le paiement':'Submit application and prepare payment'}</button>
     </>}
     {['create','photo-member','photo-partner','checkout'].includes(stage)&&
@@ -100,14 +102,38 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
       'Uncertain outcome. Keep the application reference and do not resubmit.'}</p>}
     {result&&<>
       <p><strong>{fr?'Référence PDC':'PDC reference'} : </strong><code>{result.paymentId}</code></p>
-      {result.status==='issued'&&result.paymentUrl&&<a href={result.paymentUrl} rel="noopener noreferrer"
-        onClick={()=>{try{savePendingReturnR5('membership',result);}catch{}}}>
-        {fr?'Ouvrir TaraMoney (paiement non confirmé)':'Open TaraMoney (payment unconfirmed)'}</a>}
-      {result.status!=='issued'&&<p>{fr?'Paiement encore en attente : aucun lien n’est émis à ce stade.':
-        'Payment is still pending; no payment link has been issued.'}</p>}
-      <button type="button" onClick={()=>navigate('/adhesion/merci',
-        {state:{pdcReceipt:makePendingReceiptV5C44('membership',result)}})}>
-        {fr?'Conserver mon accusé de réception':'Keep my request acknowledgement'}</button>
+      {result.status==='issued'&&result.paymentUrl&&<div>
+        <a href={result.paymentUrl} rel="noopener noreferrer"
+          onClick={()=>{try{savePendingReturnR5('membership',result);}catch{}}}
+          style={{display:'inline-flex',padding:'13px 22px',
+            background:'#167044',color:'white',borderRadius:8,
+            fontWeight:700,textDecoration:'none',marginTop:12}}>
+          ↗ {fr?'Ouvrir TaraMoney':'Open TaraMoney'}
+        </a>
+        <p style={{fontSize:13}}>
+          {fr?'Paiement non encore confirmé':'Payment not yet confirmed'}
+        </p>
+      </div>}
+      {result.status!=='issued'&&<p>
+        {fr?'Paiement encore en attente : aucun lien n’est émis à ce stade.':
+          'Payment is still pending; no payment link has been issued.'}
+      </p>}
+      <div style={{padding:16,marginTop:16,borderRadius:10,
+        border:'1px solid #d5e5d9',background:'#f7faf7'}}>
+        <button type="button"
+          onClick={()=>navigate('/adhesion/merci',
+            {state:{pdcReceipt:makePendingReceiptV5C44('membership',result)}})}
+          style={{padding:'12px 16px',borderRadius:8,
+            border:'1px solid #167044',background:'white',
+            color:'#167044',fontWeight:700,cursor:'pointer'}}>
+          ▣ {fr?'Conservez votre accusé de réception':'Keep your acknowledgement'}
+        </button>
+        <p style={{fontSize:14,lineHeight:1.5}}>
+          {fr?
+            'Ce document contient la référence de votre dossier. Il constitue une preuve de dépôt, mais pas une confirmation de paiement ni d’adhésion définitive.':
+            'This document contains your application reference. It confirms submission, but neither payment nor final membership approval.'}
+        </p>
+      </div>
     </>}
   </section>;
 }
