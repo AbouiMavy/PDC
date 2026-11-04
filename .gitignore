@@ -4,3 +4,15 @@ node_modules
 dist
 .vercel
 .env*.local
+
+# Configurations locales et secrets
+.env
+.env.*
+!.env.example.template
+**/.env
+**/.env.*
+**/.certs/
+*.pem
+*.p12
+*.pfx
+*.key

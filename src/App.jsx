@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import TreasuryDev from "./features/treasury-dev/TreasuryDev";
 import UserLayout from "./layouts/User/UserLayout";
 import Home from "./pages/Home";
 import Histoire from "./pages/Histoire";
@@ -15,6 +16,7 @@ export default function App() {
   return (
     // <BrowserRouter>
       <Routes>
+        <Route path="/dev/tresorerie" element={<TreasuryDev />} />
         <Route path="/" element={<UserLayout />}>
           <Route index element={<Home />} />
           <Route path="histoire" element={<Histoire />} />

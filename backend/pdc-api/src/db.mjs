@@ -27,6 +27,19 @@ export async function makeAdminRepository(env = process.env) {
     application_name: 'pdc-api-v5b3-dev',
   });
   return {
+    async isNationalTreasury(userId) {
+      const { rows } = await pool.query(
+        'SELECT pdc_private.treasury_v5c44t_authorized_dev($1::uuid) AS allowed', [userId]
+      );
+      return rows[0]?.allowed === true;
+    },
+    async treasuryRegister(userId, { limit, offset, category, status, search }) {
+      const { rows } = await pool.query(
+        'SELECT pdc_private.treasury_v5c44t_register_dev($1::uuid,$2::integer,$3::integer,$4::text,$5::text,$6::text) AS result',
+        [userId, limit, offset, category, status, search]
+      );
+      return rows[0]?.result ?? { total: 0, items: [] };
+    },
     async isNationalAdmin(userId) {
       const { rows } = await pool.query('SELECT pdc_private.api_is_national_admin($1::uuid) AS allowed', [userId]);
       return rows[0]?.allowed === true;

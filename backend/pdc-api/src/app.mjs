@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { bearerToken, AuthError } from './auth.mjs';
+import { handleTreasuryRequest } from './treasury-http-v5c44t2.mjs';
 
 // Montants financiers au format entier DECIMAL sous forme de texte :
 // pas de Number() sur les bigint PostgreSQL, pour préserver l'exactitude.
@@ -53,6 +54,7 @@ export function createApp({ verifyUser, repository, allowedOrigins = [] }) {
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
     } : {};
     const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    if (await handleTreasuryRequest(req, res, { verifyUser, repository, allowedOrigins })) return;
     const path = requestUrl.pathname;
     const detailMatch = /^\/v1\/admin\/reviews\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.exec(path);
     if (req.method === 'OPTIONS') {

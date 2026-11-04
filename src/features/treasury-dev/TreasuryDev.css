@@ -1,0 +1,110 @@
+.pdc-treasury{min-height:100vh;background:#f5f7f3;color:#173a27;font-family:system-ui,-apple-system,sans-serif}.pdc-treasury *{box-sizing:border-box}.pdc-treasury-header{background:linear-gradient(110deg,#075d38,#127c4c);color:white;padding:30px max(24px,calc((100vw - 1280px)/2));display:flex;align-items:center;justify-content:space-between;gap:20px}.pdc-treasury-eyebrow{font-size:12px;letter-spacing:.15em;color:#f9df64;font-weight:800}.pdc-treasury h1{font-size:clamp(27px,3vw,39px);margin:8px 0}.pdc-treasury-header p{margin:0;color:#e1f1e7}.pdc-treasury-header-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.pdc-treasury-dev{border:1px solid #f4d451;color:#ffe881;border-radius:20px;padding:8px 12px;font-size:12px;font-weight:800}.pdc-treasury button{cursor:pointer;border:1px solid #bad0bf;background:white;border-radius:8px;padding:10px 15px;color:#124e32;font-weight:650}.pdc-treasury button:hover:not(:disabled){background:#e7f1e9}.pdc-treasury button:disabled{opacity:.48;cursor:not-allowed}.pdc-treasury-main,.pdc-treasury-login{max-width:1280px;margin:0 auto;padding:30px 24px}.pdc-treasury-login{max-width:520px;margin:60px auto;background:white;border:1px solid #dbe5dc;border-radius:14px;padding:30px;box-shadow:0 8px 28px #173a2712}.pdc-treasury-login form{display:grid;gap:18px}.pdc-treasury label{display:grid;gap:7px;font-size:13px;font-weight:700}.pdc-treasury input,.pdc-treasury select{font:inherit;color:#173a27;border:1px solid #bccdc1;border-radius:8px;padding:11px;background:white;min-width:0}.pdc-treasury-login button,.pdc-treasury-filters button[type=submit]{background:#086a3e;color:white;border-color:#086a3e}.pdc-treasury-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}.pdc-treasury-summary section{background:white;border:1px solid #dce7de;border-top:4px solid #e2bc32;border-radius:10px;padding:18px}.pdc-treasury-summary span{display:block;color:#50695a;font-size:13px}.pdc-treasury-summary strong{display:block;font-size:28px;margin-top:8px}.pdc-treasury-filters{background:white;border:1px solid #dce7de;padding:18px;border-radius:12px;display:grid;grid-template-columns:1.3fr 1fr 1.5fr auto auto;align-items:end;gap:12px;margin-bottom:20px}.pdc-treasury-tablewrap{overflow-x:auto;background:white;border:1px solid #dce7de;border-radius:12px}.pdc-treasury table{border-collapse:collapse;width:100%;min-width:950px;font-size:13px}.pdc-treasury th{text-align:left;background:#eaf1e9;padding:14px 12px;color:#355542;white-space:nowrap}.pdc-treasury td{border-top:1px solid #e8eee9;padding:13px 12px;vertical-align:middle}.pdc-treasury td small{display:block;color:#9b6321;margin-top:5px}.pdc-treasury-code{font-family:ui-monospace,monospace;font-size:12px;overflow-wrap:anywhere;max-width:260px}.pdc-treasury-amount{font-weight:750;white-space:nowrap}.pdc-treasury-status{display:inline-block;border-radius:20px;background:#e9eee9;padding:5px 9px;white-space:nowrap}.pdc-treasury-status-confirmed{background:#d9efe0;color:#075b34}.pdc-treasury-status-failed,.pdc-treasury-status-cancelled{background:#fbe5e3;color:#9e302b}.pdc-treasury-status-pending,.pdc-treasury-status-initiated{background:#fff3d5;color:#795200}.pdc-treasury-pagination{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:18px 0}.pdc-treasury-warning{font-size:13px;color:#64502a;background:#fff7e0;border-left:4px solid #d9b438;padding:14px}.pdc-treasury-detail{background:white;border:1px solid #dce7de;border-radius:12px;padding:22px;margin-top:22px}.pdc-treasury-detailhead{display:flex;justify-content:space-between;align-items:center}.pdc-treasury-detail dl{display:grid;grid-template-columns:minmax(170px,1fr) 2fr;gap:0;margin:0}.pdc-treasury-detail dt,.pdc-treasury-detail dd{margin:0;border-bottom:1px solid #edf1ed;padding:10px;overflow-wrap:anywhere}.pdc-treasury-detail dt{font-weight:700;color:#5d7364}.pdc-treasury-error{background:#fce7e5;color:#8a2828;border-radius:8px;padding:12px}.pdc-treasury-empty{text-align:center;padding:28px!important}.pdc-treasury footer{text-align:center;color:#688070;font-size:12px;padding:30px 15px}@media(max-width:900px){.pdc-treasury-header{padding:24px;flex-wrap:wrap}.pdc-treasury-filters{grid-template-columns:1fr 1fr}.pdc-treasury-filters label:nth-child(3){grid-column:1/-1}}@media(max-width:580px){.pdc-treasury-summary{grid-template-columns:1fr}.pdc-treasury-filters{grid-template-columns:1fr}.pdc-treasury-filters label:nth-child(3){grid-column:auto}.pdc-treasury-detail dl{grid-template-columns:1fr}.pdc-treasury-detail dt{border-bottom:0;padding-bottom:0}.pdc-treasury-detail dd{padding-top:4px}}
+
+
+.pdc-treasury-official-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(65%, 190px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.pdc-treasury-official-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+
+/* V5C44-T2 — Médaillon du logo officiel */
+.pdc-treasury-official-logo {
+  position: fixed !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: min(28vw, 300px) !important;
+  max-width: none !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pdc-treasury-official-logo img {
+  display: block;
+  width: min(65%, 170px) !important;
+  height: auto !important;
+  max-height: 170px !important;
+  object-fit: contain;
+  background: #fffdf1;
+  padding: 16px;
+  border-radius: 22px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+  .pdc-treasury-official-logo {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    margin: 16px auto;
+  }
+}
+
+/* V5C44-T3 — Logo officiel fixe dans l'en-tête, sans superposition */
+.pdc-treasury .pdc-treasury-header {
+  position: relative;
+}
+
+.pdc-treasury .pdc-treasury-official-logo {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: 86px !important;
+  flex: 0 0 86px;
+  margin: 0 !important;
+  z-index: auto !important;
+}
+
+.pdc-treasury .pdc-treasury-official-logo img {
+  width: 86px !important;
+  max-height: 86px !important;
+  padding: 7px;
+  border-radius: 12px;
+}
+
+@media (max-width: 700px) {
+  .pdc-treasury .pdc-treasury-official-logo {
+    width: 68px !important;
+    flex-basis: 68px;
+  }
+
+  .pdc-treasury .pdc-treasury-official-logo img {
+    width: 68px !important;
+    max-height: 68px !important;
+  }
+}
+
+/* V5C44-T3 — statistiques et anneau, sans dépendance graphique */
+.pdc-treasury .pdc-treasury-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pdc-treasury .pdc-treasury-summary strong{font-size:clamp(17px,1.8vw,25px);overflow-wrap:anywhere}
+.pdc-treasury-chart{background:#fff;border:1px solid #dce7de;border-radius:12px;padding:20px;margin:0 0 20px}
+.pdc-treasury-chart h2{font-size:19px;margin:0 0 5px}
+.pdc-treasury-chart p{font-size:13px;color:#50695a;margin:0 0 16px}
+.pdc-treasury-chart-body{display:flex;gap:36px;align-items:center;flex-wrap:wrap}
+.pdc-treasury-donut{width:180px;height:180px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.pdc-treasury-donut>span{width:125px;height:125px;background:#fff;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:28px;font-weight:800}
+.pdc-treasury-donut small{font-size:12px;font-weight:500}
+.pdc-treasury-legend{list-style:none;margin:0;padding:0;flex:1;min-width:240px}
+.pdc-treasury-legend li{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #edf1ed;font-size:13px}
+.pdc-treasury-legend i{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.pdc-treasury-legend strong{margin-left:auto;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.pdc-treasury .pdc-treasury-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.pdc-treasury .pdc-treasury-summary{grid-template-columns:1fr}}

@@ -9,6 +9,12 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+     '/__pdc_admin_api': {
+    target: 'http://127.0.0.1:8787',
+    changeOrigin: false,
+    xfwd: false,
+    rewrite: (path) => path.replace(/^\/__pdc_admin_api(?=\/|$)/, ''),
+},
       '/v1/public/r5': {
         target: 'http://127.0.0.1:8790',
         changeOrigin: false,
