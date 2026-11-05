@@ -26,7 +26,8 @@ const partner={civility:'Monsieur',firstName:'Bob',lastName:'Fictif',dob:'1981-0
  email:'bob@example.test',phoneE164:'+33622345678',acceptedStatutes:true,acceptedDataNotice:true};
 const base={idempotencyKey:'r5_test_fixed_idempotent_0001',formula:'simple',country:'FR',member,
  donationConversionAccepted:false,
- requestCard:false,cardFormat:null,territory:{region:'CE',department:'LEKIE',commune:'OBALA'}};
+ requestCard:false,cardFormat:null,territory:{region:'CE',department:'LEKIE',commune:'OBALA'},
+  residence:{region:'IDF',department:'94',city:'Thiais',postalCode:'94320'}};
 const drafted=(a=base)=>prepareDiasporaR5({request:a});
 const sha=x=>createHash('sha256').update(x).digest('hex');
 

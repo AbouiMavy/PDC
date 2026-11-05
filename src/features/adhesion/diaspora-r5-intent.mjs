@@ -29,5 +29,8 @@ export function buildDiasporaR5Intent({form,idempotencyKey,phonePrefix}={}){
     donationConversionAccepted:form.formule==='couple' ? form.accepteConversionDon===true : false,
     member:person('member'),partner:form.formule==='couple'?person('partner'):null,
     requestCard:form.demandeCarte===true,cardFormat:form.demandeCarte?cardFormat:null,
+    residence:{region:form.region||form.regionEtrangere,
+      department:form.departement||form.departementEtranger||null,
+      city:form.ville,postalCode:form.codePostal},
     territory:{region:form.rattachementRegion,department:form.rattachementDepartement,commune}});
 }

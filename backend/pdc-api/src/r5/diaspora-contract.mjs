@@ -28,7 +28,7 @@ function person(p){
 }
 export function prepareDiasporaR5({request}={}){
   if(!request||typeof request!=='object'||Array.isArray(request)||
-    Object.keys(request).some(k=>!['idempotencyKey','formula','country','member','partner','requestCard','cardFormat','territory','donationConversionAccepted'].includes(k))||
+    Object.keys(request).some(k=>!['idempotencyKey','formula','country','member','partner','requestCard','cardFormat','territory','residence','donationConversionAccepted'].includes(k))||
     !ID.test(request.idempotencyKey??'')||!Object.hasOwn(DIASPORA,request.formula)||
     !/^[A-Z]{2}$/.test(request.country??'')||request.country==='CM'||
     typeof request.requestCard!=='boolean')fail('ORDER_INVALID');
@@ -45,12 +45,24 @@ export function prepareDiasporaR5({request}={}){
   if(!t||typeof t!=='object'||Array.isArray(t)||
      Object.keys(t).sort().join(',')!=='commune,department,region'||
      Object.values(t).some(v=>typeof v!=='string'||!clean(v)||clean(v).length>100))fail('TERRITORY_INVALID');
+  const r=request.residence;
+  if(!r||typeof r!=='object'||Array.isArray(r)||
+     Object.keys(r).sort().join(',')!=='city,department,postalCode,region')fail('RESIDENCE_INVALID');
+  const residence={};
+  for(const [k,max,mandatory] of [['region',120,true],['department',120,false],
+                                  ['city',120,true],['postalCode',25,true]]){
+    const v=r[k];
+    if(v==null && !mandatory){residence[k]=null;continue;}
+    if(typeof v!=='string'||(mandatory&&!v.trim())||v.trim().length>max||
+       /[\u0000-\u001f\u007f<>]/.test(v))fail('RESIDENCE_INVALID');
+    residence[k]=v.trim()||null;
+  }
   const legalAmountEurCents=String(DIASPORA[request.formula]*100);
   const converted=xafQuoteFromEuroCents({euroCents:legalAmountEurCents,...DIASPORA_FX_R5});
   const payload={idempotencyKey:request.idempotencyKey,formula:request.formula,country:request.country,
     donationConversionAccepted:request.donationConversionAccepted,
     member,partner,requestCard:request.requestCard,cardFormat:request.requestCard?request.cardFormat:null,
-    territory:Object.fromEntries(Object.entries(t).map(([k,v])=>[k,clean(v)])),
+    residence,territory:Object.fromEntries(Object.entries(t).map(([k,v])=>[k,clean(v)])),
     legalAmountEurCents,providerAmountXaf:converted.providerAmountXaf};
   return Object.freeze({...payload,requestDigest:createHash('sha256').update(JSON.stringify(payload)).digest('hex'),
     legalCurrency:'EUR',providerCurrency:'XAF',paymentConfirmed:false,membershipGranted:false,cardIssued:false});

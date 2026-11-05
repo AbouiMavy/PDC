@@ -4,6 +4,17 @@ const METHODS = new Set(['mobile', 'tara', 'carte', 'virement']);
 const PURPOSES = ['scrutateurs','cautionnements','campagne','autres'];
 const positive = value => /^\d+$/.test(String(value)) && Number.isSafeInteger(Number(value)) && Number(value)>=0;
 const fail = code => { throw new Error(code); };
+function residence(raw, country) {
+  const plain=(v,max)=>{
+    if(v==null || v==='')return null;
+    if(typeof v!=='string'||v.trim().length>max || /[\u0000-\u001f\u007f<>]/.test(v))fail('INVALID_RESIDENCE');
+    return v.trim()||null;
+  };
+  const result={region:plain(raw?.region,120),department:plain(raw?.department,120),
+    city:plain(raw?.city,120),postalCode:plain(raw?.postalCode,25)};
+  if(!result.city || (country==='CM' && (!result.region||!result.department)))fail('INVALID_RESIDENCE');
+  return result;
+}
 
 function common({firstName,lastName,email,phoneE164,country,method,messagingChannel},idempotencyKey) {
   if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9:_-]{16,128}$/.test(idempotencyKey)) fail('INVALID_REFERENCE');
@@ -49,7 +60,9 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
     const designations=data.affectation==='libre'?[{purpose:'libre',percentBps:10000}]:
       data.affectation==='ciblee'?allocationInBasisPoints(data.montant,data.repartition):fail('INVALID_ALLOCATION');
     return Object.freeze({kind:'donation',...base,amountXaf:String(data.montant),
-      designations,donorDeclaration:true});
+      designations,donorDeclaration:true,
+      residence:residence({region:data.region,department:data.departement,
+        city:data.commune,postalCode:data.codePostal},data.pays)});
   }
   if (source==='membership') {
     const f=data.form;
@@ -71,7 +84,9 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
       messagingChannel:data.methode==='tara'?data.messagerie:null},idempotencyKey);
     return Object.freeze({kind:'initial_membership',...base,dob:f.dateNaissance,
       birthPlace:f.lieuNaissance,civility:f.civilite,memberCategory:f.categorie,
-      acceptedStatutes:true,acceptedDataNotice:true,annualMode:f.modeCotisation,annualPaymentXaf:String(annualPaid)});
+      acceptedStatutes:true,acceptedDataNotice:true,annualMode:f.modeCotisation,annualPaymentXaf:String(annualPaid),
+      residence:residence({region:f.region,department:f.departement,
+        city:f.commune==='__autre__'?f.communeAutre:(f.commune||f.communeAutre),postalCode:null},'CM')});
   }
   fail('INVALID_SOURCE');
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './TreasuryDev.css';
+import './TreasuryIdentityT11.css';
 
 const API = '/__pdc_admin_api';
 const categories = {
@@ -166,9 +167,14 @@ export default function TreasuryDev() {
       </tbody></table></div>
       <nav className="pdc-treasury-pagination" aria-label="Pagination"><button type="button" disabled={busy || offset === 0} onClick={() => setOffset(v => Math.max(0, v - pageSize))}>Précédent</button><span>Page {Math.floor(offset / pageSize) + 1}</span><button type="button" disabled={busy || !result || offset + pageSize >= result.total} onClick={() => setOffset(v => v + pageSize)}>Suivant</button></nav>
       <p className="pdc-treasury-warning">Le total émis représente les intentions, et non les encaissements. Le total confirmé est brut, avant frais. Les qualifications et affectations déjà enregistrées sont conservées ; aucune nouvelle qualification n'est effectuée par ce tableau.</p>
-      {selected && <section className="pdc-treasury-detail" aria-label="Identité du contributeur" data-treasury-identity-version="T9">
-        <div className="pdc-treasury-detailhead"><h2>Identité et coordonnées du contributeur</h2></div>
-        <h3>Identité et contact</h3>
+      {selected && <section className="pdc-treasury-detail pdc-treasury-identity" aria-label="Identité du contributeur" data-treasury-identity-version="T9" data-treasury-presentation-version="T11">
+        <div className="pdc-treasury-detailhead pdc-treasury-identity-header">
+          <span className="pdc-treasury-identity-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span>
+          <h2>Identité et coordonnées du contributeur</h2>
+        </div>
+        <div className="pdc-treasury-identity-grid">
+        <section className="pdc-treasury-identity-card pdc-treasury-identity-card--contact" aria-labelledby="pdc-treasury-contact-title">
+        <h3 id="pdc-treasury-contact-title"><span className="pdc-treasury-identity-step" aria-hidden="true">01</span><span>Identité et contact</span></h3>
         <dl>
           {[
             ['Civilité', selected.contributor?.civility],
@@ -178,8 +184,12 @@ export default function TreasuryDev() {
             ['E-mail', selected.contributor?.email],
           ].map(([key, value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{text(value)}</dd></React.Fragment>)}
         </dl>
-        <h3>Résidence effective</h3>
+        </section>
+        <section className="pdc-treasury-identity-card pdc-treasury-identity-card--residence" aria-labelledby="pdc-treasury-residence-title">
+        <h3 id="pdc-treasury-residence-title"><span className="pdc-treasury-identity-step" aria-hidden="true">02</span><span>Résidence effective</span></h3>
         <p>Adresse de résidence déclarée, en France, au Cameroun ou dans un autre pays.</p>
+        {selected.contributor?.residenceDataQuality==='not_collected_historic' &&
+          <p role="status">Dossier diaspora historique : l'adresse de résidence étrangère n'a pas été recueillie. Les anciennes valeurs camerounaises ne sont pas affichées comme une résidence.</p>}
         <dl>
           {[
             ['Pays de résidence', selected.contributor?.country],
@@ -189,8 +199,12 @@ export default function TreasuryDev() {
             ['Code postal', selected.contributor?.postalCode],
           ].map(([key, value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{text(value)}</dd></React.Fragment>)}
         </dl>
-        <h3>Rattachement territorial au Cameroun</h3>
+        </section>
+        <section className="pdc-treasury-identity-card pdc-treasury-identity-card--territory" aria-labelledby="pdc-treasury-territory-title">
+        <h3 id="pdc-treasury-territory-title"><span className="pdc-treasury-identity-step" aria-hidden="true">03</span><span>Rattachement territorial au Cameroun</span></h3>
         <p>Région, département et commune de rattachement déclarés : ces informations ne sont pas une adresse de résidence.</p>
+        {selected.contributor?.homeTerritorySource==='r5_historical_snapshot' &&
+          <p role="status">Rattachement récupéré depuis le dossier diaspora d'origine, sans modifier l'identité historique.</p>}
         <dl>
           {[
             ['Région de rattachement', selected.contributor?.homeRegion],
@@ -199,6 +213,8 @@ export default function TreasuryDev() {
           ].map(([key, value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{text(value)}</dd></React.Fragment>)}
           {selected.donor && [selected.donor.firstName, selected.donor.lastName].filter(Boolean).join(' ').trim() !== [selected.contributor?.firstName, selected.contributor?.lastName].filter(Boolean).join(' ').trim() && <React.Fragment><dt>Donateur affecté distinct du payeur</dt><dd>{[selected.donor.firstName, selected.donor.lastName].filter(Boolean).join(' ') || 'Non renseigné'}</dd></React.Fragment>}
         </dl>
+        </section>
+        </div>
       </section>}
       {selected && <section className="pdc-treasury-detail" aria-label="Détail de l'intention"><div className="pdc-treasury-detailhead"><h2>Détail financier</h2><button type="button" onClick={() => setSelected(null)}>Fermer</button></div><dl>
         {[['ProductId',selected.productId],['Identifiant paiement',selected.paymentId],['Identifiant commande',selected.quoteId],['Nature',categories[selected.category] || 'À qualifier'],['État du paiement',statuses[selected.paymentStatus] || selected.paymentStatus],['Montant attendu',formatXaf(selected.expectedGrossXaf)],['Montant affecté',formatXaf(selected.allocatedXaf)],['Transaction marchande',selected.providerTransactionId],['Date de confirmation',formatDate(selected.confirmedAt)],['Formule diaspora',selected.diasporaFormula],['Montant légal diaspora',formatEur(selected.legalAmountEurCents)],['Nombre d’affectations',selected.allocationCount],['Qualification comptable', selected.category === 'don' && selected.paymentStatus === 'confirmed' && Number(selected.donationCount) > 0 ? 'Don qualifié · affectation enregistrée' : 'Non établie par le registre']].map(([key,value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{text(value)}</dd></React.Fragment>)}

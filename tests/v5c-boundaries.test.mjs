@@ -9,7 +9,9 @@ test('V5-C core is strictly under backend and no existing public entry modified'
  const index=readFileSync(file('backend/pdc-api/src/index.mjs'),'utf8');
  const app=readFileSync(file('backend/pdc-api/src/app.mjs'),'utf8');
  assert.doesNotMatch(index,/v5c|tara/i);
- assert.doesNotMatch(app,/v1\/checkout|v1\/tara|v5c/i);
+ // Le routeur de trésorerie en lecture seule est distinct des paiements publics.
+ assert.match(app,/handleTreasuryRequest/);
+ assert.doesNotMatch(app,/\/v1\/(?:checkout|tara|public)\b|makeTaraServerClient|createPaymentLink/i);
 });
 test('public React does not load Tara SDK or publish Tara keys', {skip: !existsSync(file('src/App.jsx'))},()=>{
  for(const name of ['src/App.jsx','src/pages/Adhesion.jsx','src/components/DonForm/DonForm.jsx','vite.config.js']){

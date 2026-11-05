@@ -24,6 +24,7 @@ export async function makePublicOrderPgV5C({pool,enabled=false,environment='disa
         email:p.email,phoneE164:p.phoneE164,country:p.country,
         method:p.method,messagingChannel:p.messagingChannel,
         grossAmountXaf:p.grossAmountXaf,
+        residence:p.residence,
         membership:p.membership,designations:p.designations};
       let rows;
       try {

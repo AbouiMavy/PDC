@@ -34,8 +34,8 @@ export default function PendingManualReceiptV5C44({receipt,language='fr'}) {
         ? (fr?'Votre demande d’adhésion a bien été enregistrée.':'Your membership application has been registered.')
         : (fr?'Votre demande de don a bien été enregistrée.':'Your donation request has been registered.')}</p>
       <p>{fr
-        ? 'Conservez précieusement votre reçu TaraMoney et les références de votre dossier PDC. Ces informations pourront vous être demandées ultérieurement.'
-        : 'Keep your TaraMoney receipt and PDC application references. You may need them later.'}</p>
+        ? 'TaraMoney peut remettre un reçu après paiement. Cet accusé de réception indique le montant brut attendu et atteste le dépôt de votre demande, pas l’encaissement du paiement. Conservez vos références PDC.'
+        : 'TaraMoney may issue a receipt after payment. This acknowledgment shows the expected gross amount and confirms submission, not receipt of payment. Keep your PDC references.'}</p>
       <p><strong>{fr?'Référence PDC':'PDC reference'} : </strong><code>{receipt.paymentId}</code></p>
       {receipt.productId && <p><strong>{fr?'Référence de rapprochement Tara/PDC':'Tara/PDC reconciliation reference'} : </strong><code>{receipt.productId}</code></p>}
       <p><strong>{fr?'Montant brut attendu':'Expected gross amount'} : </strong>{receipt.amountXaf} FCFA</p>

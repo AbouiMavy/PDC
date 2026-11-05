@@ -81,6 +81,7 @@ export default function DonForm({ onValidated }) {
       civilite:values.civilite,nom:values.nom.trim(),prenom:values.prenom.trim(),
       email:values.email.trim(),pays,region:auCameroun ? region : (values.region || region),
       departement:auCameroun ? departement : (values.departement || departement),commune:communeValidee,
+      codePostal:String(values.codePostal||'').trim(),
       periodicite,montant,affectation,repartition:affectation==='ciblee' ? {...repartition} : null,
       methode,messagerie,anonymePublic:Boolean(values.anonymePublic),
       telephoneE164:indicatif + (['FR','GB','DE'].includes(pays)

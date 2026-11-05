@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {buildPublicOrderPayload} from '../src/features/payments/public-checkout-payload-v5c29.mjs';
 const f={type:'nouvelle',pays:'CM',formule:'simple',nom:'Mbala',prenom:'Anne',email:'a@example.test',
  telephone:'612345678',civilite:'Madame',dateNaissance:'1990-05-01',lieuNaissance:'Yaoundé',
- categorie:'rural_etudiant',demandeCarte:false,accepteStatuts:true,accepteDonnees:true};
+ categorie:'rural_etudiant',demandeCarte:false,accepteStatuts:true,accepteDonnees:true,
+ region:'CE',departement:'LEKIE',commune:'OBALA'};
 const make=(overrides,amounts)=>buildPublicOrderPayload({source:'membership',
  idempotencyKey:'v5c45_test_20261029_abcdef',data:{form:{...f,...overrides},
  amounts:{totalImmediate:amounts},methode:'mobile'}});

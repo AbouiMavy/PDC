@@ -5,9 +5,11 @@ import {allocationInBasisPoints, buildPublicOrderPayload,
 const idempotencyKey='v5c29_test_20261028_abcdef';
 const donor={nom:'Mbala',prenom:'Anne',email:'a@example.test',telephoneE164:'+237612345678',
   pays:'CM',montant:500,periodicite:'ponctuel',methode:'tara',messagerie:'whatsapp',
-  affectation:'libre',repartition:null,anonymePublic:false};
+  affectation:'libre',repartition:null,anonymePublic:false,
+  region:'CE',departement:'LEKIE',commune:'OBALA',codePostal:''};
 const member={form:{type:'nouvelle',pays:'CM',nom:'Mbala',prenom:'Anne',email:'a@example.test',
   telephone:'612345678',civilite:'Madame',dateNaissance:'1990-05-01',lieuNaissance:'Yaoundé',
+  region:'CE',departement:'LEKIE',commune:'OBALA',
   categorie:'urbain',formule:'simple',modeCotisation:'aucun',demandeCarte:false,
   accepteStatuts:true,accepteDonnees:true},amounts:{totalImmediate:2000},
   methode:'mobile',messagerie:'whatsapp'};

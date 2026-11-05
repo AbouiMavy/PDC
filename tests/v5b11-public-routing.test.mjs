@@ -19,6 +19,7 @@ const publicPaths = [
   '/mon-espace',
 ];
 const privatePaths = [
+  '/dev/tresorerie',
   '/admin-dev.html',
   '/carte-dev.html',
   '/__pdc_admin_api/v1/admin/dashboard',
@@ -54,8 +55,10 @@ test('chaque route React publique déclarée est couverte par Vercel', () => {
   const app = read('src/App.jsx');
   const paths = [...app.matchAll(/<Route\s+path="([^"]+)"/g)]
     .map(match => match[1])
-    .filter(path => path !== '/')
+    // Les routes privées DEV ne doivent PAS figurer dans les réécritures Vercel.
+    .filter(path => path !== '/' && path !== '/dev/tresorerie')
     .map(path => `/${path}`);
+  assert.match(app, /<Route\s+path="\/dev\/tresorerie"/);
   assert.deepEqual([...paths].sort(), [...publicPaths].sort(),
     'Une nouvelle page React exige de revoir explicitement les rewrites');
   for (const path of paths) assert.equal(resolvedDestination(path), '/index.html');

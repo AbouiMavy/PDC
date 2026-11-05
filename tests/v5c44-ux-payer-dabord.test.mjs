@@ -27,7 +27,8 @@ test('44 UX R3: accusé téléchargeable sans reçus financiers ni appels backen
   assert.match(c,/saveAcknowledgment/);
   assert.match(c,/Not a payment receipt/);
   assert.doesNotMatch(c,/fetch\s*\(|localStorage|sessionStorage/);
-  assert.match(c,/membership&&<p>/);
+  assert.match(c,/const membership=receipt\.source===['"]membership['"]/);
+  assert.match(c,/\{membership\s*\?\s*\(/);
 });
 test('44 UX R3: pas de prévisualisation concurrente en sandbox',()=>{
   const x=read('src/pages/Adhesion.jsx');

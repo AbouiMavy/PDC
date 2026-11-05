@@ -16,7 +16,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+[1-9][0-9]{6,14}$/;
 const allowedFields = new Set(['kind','idempotencyKey','firstName','lastName','email','phoneE164',
   'country','method','messagingChannel','amountXaf','designations','dob','birthPlace',
-  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration']);
+  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration','residence']);
 const name = (v,max=100) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= max &&
   !/[\u0000-\u001f\u007f<>]/.test(v);
 const isoDate = value => {
@@ -25,6 +25,22 @@ const isoDate = value => {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0,10)===value &&
     value < new Date().toISOString().slice(0,10);
 };
+
+function normalizedResidence(r, country) {
+  // Rétrocompatibilité avec les anciennes requêtes sans géographie : pas d'adresse inventée.
+  if(r==null)return null;
+  if(typeof r!=='object'||Array.isArray(r)||
+     Object.keys(r).sort().join(',')!=='city,department,postalCode,region')fail('PDC_PUBLIC_RESIDENCE_INVALID');
+  const text=(v,max)=>{
+    if(v==null||v==='')return null;
+    if(typeof v!=='string'||v.trim().length>max||/[\u0000-\u001f\u007f<>]/.test(v))fail('PDC_PUBLIC_RESIDENCE_INVALID');
+    return v.trim()||null;
+  };
+  const out={region:text(r.region,120),department:text(r.department,120),
+    city:text(r.city,120),postalCode:text(r.postalCode,25)};
+  if(!out.city || (country==='CM'&&(!out.region||!out.department)))fail('PDC_PUBLIC_RESIDENCE_INVALID');
+  return out;
+}
 
 /** Les champs sont strictement bornés avant tout stockage. Pas de prix libre
  * pour les frais initiaux d'adhésion; le PDC en fixe le montant côté serveur.
@@ -86,7 +102,7 @@ export function preparePublicOrderRequest(raw) {
     firstName:raw.firstName.trim(),lastName:raw.lastName.trim(),
     email:raw.email.trim().toLowerCase(),phoneE164:raw.phoneE164,
     country:raw.country,method:raw.method,messagingChannel:raw.messagingChannel ?? null,
-    grossAmountXaf,designations,membership,
+    grossAmountXaf,designations,membership,residence:normalizedResidence(raw.residence,raw.country),
   };
   // Digest canonique à passer à une RPC privée : le même idempotencyKey ne
   // peut pas servir à changer le montant, la personne ou le moyen de paiement.
