@@ -2,14 +2,15 @@
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PRODUCT=/^PDC_[A-Za-z0-9_-]{24}$/;
 const STATES=new Set(['issued','manual_review','pending_external_payment',
-  'pending_payment_setup','reserved_channel_pending']);
+  'pending_payment_setup','reserved_channel_pending','request_initiated','request_rejected']);
 export function makePendingReceiptV5C44(source, result) {
   if (!['membership','donation'].includes(source) || !result ||
       !UUID.test(result.paymentId??'') || !STATES.has(result.status) ||
       !/^[1-9][0-9]{0,8}$/.test(result.grossAmountXaf??'') ||
       result.currency!=='XAF' || result.paymentConfirmed!==false ||
       result.membershipGranted!==false ||
-      (result.productId!=null && (!PRODUCT.test(result.productId) || result.status!=='issued')))
+      (result.productId!=null && (!PRODUCT.test(result.productId) ||
+        !['issued','request_initiated','request_rejected','manual_review'].includes(result.status))))
     throw Error('PDC_44_RECEIPT_INVALID');
   return Object.freeze({source,paymentId:result.paymentId,productId:result.productId??null,
     amountXaf:result.grossAmountXaf,currency:'XAF',

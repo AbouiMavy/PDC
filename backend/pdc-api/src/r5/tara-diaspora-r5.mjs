@@ -9,17 +9,24 @@ const hash=x=>createHash('sha256').update(x).digest('hex');
 const field=(method,channel)=>method==='mobile'?'smsLink':method==='carte'?'cardLink':
   method==='tara'?({general:'generalLink',whatsapp:'whatsappLink',telegram:'telegramLink',dikalo:'dikaloLink'}[channel]??null):null;
 const fail=x=>{throw Error('PDC_R5_TARA_'+x);};
-export async function makeDiasporaTaraR5({pool,taraClient,returnUrl,webHookUrl,enabled=false,environment='disabled'}={}){
+export async function makeDiasporaTaraR5({pool,taraClient,mobileDirect=null,returnUrl,webHookUrl,enabled=false,environment='disabled'}={}){
   if(enabled!==true||environment!=='sandbox'||typeof pool?.query!=='function'||
      typeof taraClient?.createPaymentLink!=='function'||typeof returnUrl!=='string'||
      typeof webHookUrl!=='string'|| !returnUrl.startsWith('https://')||!webHookUrl.startsWith('https://')) fail('DISABLED');
   const role=(await pool.query('SELECT current_user AS role_name')).rows?.[0]?.role_name;
   if(role!=='pdc_r5_intake_writer')fail('ROLE_INVALID');
   return Object.freeze({
-    async create({orderId,sessionToken,method,messagingChannel=null,language='fr'}){
+    async create({orderId,sessionToken,method,messagingChannel=null,language='fr',mobileMode=null,mobilePhone=null}){
       if(!UUID.test(orderId??'')||!SESSION.test(sessionToken??'')||!field(method,messagingChannel)||
         (method!=='tara'&&messagingChannel!=null))fail('INPUT_INVALID');
       if(!['fr','en'].includes(language))fail('LANGUAGE_INVALID');
+      if(method==='mobile'&&(mobileMode??'sms')==='direct'){
+        if(typeof mobileDirect?.create!=='function')fail('DIRECT_DISABLED');
+        return mobileDirect.create({orderId,sessionToken,method,messagingChannel,
+          language,mobileMode:'direct',mobilePhone});
+      }
+      if((method==='mobile'&&![null,'sms'].includes(mobileMode))||
+         (method!=='mobile'&&mobileMode!=null)||mobilePhone!=null)fail('INPUT_INVALID');
       const sHash=hash(sessionToken);
       const productId=`PDC_${randomBytes(18).toString('base64url')}`;
       const rows=(await pool.query(`SELECT * FROM pdc_private.r5_reserve_tara_intent_dev(

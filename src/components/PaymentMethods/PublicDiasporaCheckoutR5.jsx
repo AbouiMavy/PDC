@@ -5,6 +5,7 @@ import {INDICATIFS} from '../DonForm/indicatifs';
 import {buildDiasporaR5Intent} from '../../features/adhesion/diaspora-r5-intent.mjs';
 import {calculDiaspora} from '../../features/adhesion/tarifs.mjs';
 import {validatePublicCheckoutResponse} from '../../features/payments/public-checkout-payload-v5c29.mjs';
+import {validateMobileDirectResponseT12} from '../../features/payments/mobile-direct-response-t12.mjs';
 import {makePendingReceiptV5C44} from '../../features/payments/manual-receipt-v5c44.mjs';
 import {savePendingReturnR5} from '../../features/payments/return-session-r5.mjs';
 import './PublicCheckoutV5C29.css';
@@ -27,7 +28,7 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
     [partnerEmailStatus,setPartnerEmailStatus]=useState('');
   if(!enabled)return <p role="status">{fr?'Le dossier diaspora reste en mode prévisualisation : le parcours financier R5 DEV n’est pas activé.':
     'Diaspora application is in preview mode: the R5 DEV payment flow is disabled.'}</p>;
-  if(data.methode==='mobile'&&data.mobileMode==='direct')return <p role="status">{fr?'Paiement direct Mobile Money : raccordement serveur R5 requis avant toute demande de débit. Le dossier n’est pas encore transmis.':'Direct Mobile Money requires the R5 server route before initiating a debit. The application has not yet been sent.'}</p>;
+  if(data.methode==='mobile'&&data.mobileMode==='direct'&&import.meta.env.VITE_PDC_R5_MOBILE_DIRECT_ENABLED!=='true')return <p role="status">{fr?'Paiement direct Mobile Money : raccordement serveur R5 requis avant toute demande de débit. Le dossier n’est pas encore transmis.':'Direct Mobile Money requires the R5 server route before initiating a debit. The application has not yet been sent.'}</p>;
   if(data.methode==='virement')return <p role="status">{fr?'Le virement diaspora exige une validation bancaire distincte et n’est pas activé dans cette recette R5. Sélectionnez un autre moyen pour un essai Sandbox.':'Diaspora bank transfers require separate bank verification and are not enabled in this R5 Sandbox.'}</p>;
   const api=import.meta.env.VITE_PDC_R5_API_ORIGIN;
   async function post(path,body){
@@ -67,9 +68,13 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
       const raw=await post('/v1/public/r5/checkout',{
         orderId:created.orderId,sessionToken:created.sessionToken,
         method:data.methode,messagingChannel:data.methode==='tara'?data.messagerie:null,
+        mobileMode:data.methode==='mobile'?(data.mobileMode||'sms'):null,
+        mobilePhone:data.methode==='mobile'&&data.mobileMode==='direct'?data.mobilePhone:null,
         language:language==='en'?'en':'fr'});
-      const validated=validatePublicCheckoutResponse(raw,data.methode,
-        data.methode==='tara'?data.messagerie:null);
+      const validated=data.methode==='mobile'&&data.mobileMode==='direct'
+        ? validateMobileDirectResponseT12(raw)
+        : validatePublicCheckoutResponse(raw,data.methode,
+          data.methode==='tara'?data.messagerie:null);
       setResult(validated);setStage('result');
     }catch{
       // Si la réponse HTTP est ambiguë, ne JAMAIS recréer un paiement automatiquement.
@@ -115,10 +120,16 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
           {fr?'Paiement non encore confirmé':'Payment not yet confirmed'}
         </p>
       </div>}
-      {result.status!=='issued'&&<p>
-        {fr?'Paiement encore en attente : aucun lien n’est émis à ce stade.':
-          'Payment is still pending; no payment link has been issued.'}
+      {result.status!=='issued'&&<p role="status">
+        {result.status==='request_initiated'
+          ? (fr?'Demande de paiement transmise à TaraMoney. Confirmez-la sur le téléphone indiqué. Encaissement NON confirmé : contrôle manuel obligatoire.':'Payment request sent to TaraMoney. Approve it on the selected phone. Settlement NOT confirmed; manual verification is mandatory.')
+          : result.status==='request_rejected'
+          ? (fr?'TaraMoney a refusé la demande de débit. Aucun paiement confirmé. Conservez la référence pour vérification.':'TaraMoney rejected the debit request. No payment is confirmed. Keep the reference.')
+          : result.status==='manual_review'
+          ? (fr?'Issue incertaine : rapprochez la référence avec le PDC. Ne relancez pas ce paiement.':'Uncertain outcome: contact PDC with the reference. Do not retry this payment.')
+          : (fr?'Paiement encore en attente : aucun lien n’est émis à ce stade.':'Payment is still pending; no payment link has been issued.')}
       </p>}
+      {result.productId&&<p><strong>ProductId TaraMoney : </strong><code>{result.productId}</code></p>}
       <div style={{padding:16,marginTop:16,borderRadius:10,
         border:'1px solid #d5e5d9',background:'#f7faf7'}}>
         <button type="button"

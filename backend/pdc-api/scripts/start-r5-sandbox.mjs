@@ -6,6 +6,8 @@ import {makeProvisionalPhotoRepositoryR5} from '../src/r5/provisional-portrait-r
 import {createProvisionalStorageR5} from '../src/r5/provisional-private-storage.mjs';
 import {makeProvisionalPortraitR5} from '../src/r5/portrait-provisional.mjs';
 import {makeDiasporaTaraR5} from '../src/r5/tara-diaspora-r5.mjs';
+import {makeDiasporaMobileDirectR5T12} from '../src/r5/mobile-direct-r5-t12.mjs';
+import {makeTaraMobilePayClientT12} from '../src/v5c/tara-mobilepay-client-t12.mjs';
 import {makePartnerEmailR51,makeResendSenderR51} from '../src/r5/partner-email-r5.mjs';
 import {createDiasporaHttpR5} from '../src/r5/diaspora-http-r5.mjs';
 import {openWriterPoolV5C30} from '../src/v5c/public-writer-pool-v5c30.mjs';
@@ -73,7 +75,20 @@ try {
     siteOrigin:origin,enabled:true,environment:'sandbox'});
   const taraClient=makeTaraServerClient({apiKey:env.PDC_R5_TARA_SANDBOX_API_KEY,
     businessId:env.PDC_R5_TARA_BUSINESS_ID,environment:'sandbox',allowNetwork:true});
-  const tara=await makeDiasporaTaraR5({pool:intakePool,taraClient,enabled:true,environment:'sandbox',
+  // T12-B direct non activé par défaut : nécessite la migration SQL et deux opt-ins DEV.
+  if(![undefined,'true','false'].includes(env.PDC_R5_MOBILE_DIRECT_ENABLED))
+    throw Error('PDC_R5_MOBILE_DIRECT_CONFIG_INVALID');
+  if(env.PDC_R5_MOBILE_DIRECT_ENABLED==='true' &&
+     (typeof env.PDC_R5_MOBILE_HMAC_SECRET!=='string'||env.PDC_R5_MOBILE_HMAC_SECRET.length<32))
+    throw Error('PDC_R5_MOBILE_HMAC_REQUIRED');
+  const mobileDirect=env.PDC_R5_MOBILE_DIRECT_ENABLED==='true'
+    ? await makeDiasporaMobileDirectR5T12({pool:intakePool,
+      mobileClient:makeTaraMobilePayClientT12({apiKey:env.PDC_R5_TARA_SANDBOX_API_KEY,
+        businessId:env.PDC_R5_TARA_BUSINESS_ID,environment:'sandbox',allowNetwork:true}),
+      webHookUrl:env.PDC_R5_WEBHOOK_URL,phoneHmacKey:env.PDC_R5_MOBILE_HMAC_SECRET,
+      enabled:true,environment:'sandbox'})
+    : null;
+  const tara=await makeDiasporaTaraR5({pool:intakePool,taraClient,mobileDirect,enabled:true,environment:'sandbox',
     returnUrl:`${origin}/retour-paiement?kind=adhesion`,webHookUrl:env.PDC_R5_WEBHOOK_URL});
   const enforceRateLimit=await makePgPublicRateLimiterV5C29({pool:ratePool,
     hmacSecret:env.PDC_V5C30_RATE_HMAC_SECRET,maxHits:12,enabled:true,environment:'sandbox'});
