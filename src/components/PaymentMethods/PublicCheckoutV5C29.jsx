@@ -94,6 +94,7 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
   const requestedMethod=data?.methode;
   const requestedChannel=data?.methode==='tara'?data?.messagerie:null;
   if(!enabled)return null;
+  if(requestedMethod==='mobile' && data?.mobileMode==='direct') return <p role="status">{lang==='fr'?'Paiement direct Mobile Money : raccordement serveur DEV requis avant toute demande de débit. Aucune demande de paiement n’a été envoyée.':'Direct Mobile Money: DEV server integration is required before initiating a debit. No payment request was sent.'}</p>;
   const apiOrigin=import.meta.env.VITE_PDC_V5C29_API_ORIGIN || '';
   async function submit(){
     if(started || busy || !order.data || !token)return;

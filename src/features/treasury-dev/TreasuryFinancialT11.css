@@ -1,0 +1,19 @@
+/* T11 — finances : même rang visuel et même charte que la fiche Identité T11. */
+.pdc-treasury .pdc-treasury-financial {padding:0;overflow:hidden;border-radius:18px;border:1px solid #d6e3d9;box-shadow:0 8px 26px #173a2709;}
+.pdc-treasury .pdc-treasury-financial .pdc-treasury-financial-header {display:flex;justify-content:flex-start;align-items:center;gap:16px;padding:25px 28px;color:#fff;background:linear-gradient(110deg,#075d38,#127347);border-bottom:4px solid #e8c747;flex-wrap:wrap;}
+.pdc-treasury .pdc-treasury-financial-header h2 {margin:0;flex:1;color:white;font-size:clamp(21px,2.1vw,27px);font-weight:800;letter-spacing:-.025em;}
+.pdc-treasury .pdc-treasury-financial-icon {display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;color:#ffdf72;background:#ffffff12;border:1px solid #ffffff3d;border-radius:14px;font-size:18px;font-weight:800;}
+.pdc-treasury .pdc-treasury-financial-header button {border-color:#f8eab1;}
+.pdc-treasury .pdc-treasury-financial-body {padding:24px;background:#f8faf7;}
+.pdc-treasury .pdc-treasury-financial-metrics {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:19px;}
+.pdc-treasury .pdc-treasury-financial-metrics article {display:flex;flex-direction:column;gap:9px;min-width:0;background:#fff;padding:17px 18px;border:1px solid #dde8e0;border-top:3px solid #218057;border-radius:12px;}
+.pdc-treasury .pdc-treasury-financial-metrics article:last-child {border-top-color:#d1ac31;}
+.pdc-treasury .pdc-treasury-financial-metrics span {font-size:.83rem;color:#526a59;font-weight:700;}
+.pdc-treasury .pdc-treasury-financial-metrics strong {font-size:clamp(1rem,1.7vw,1.35rem);line-height:1.3;color:#0d5931;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+.pdc-treasury .pdc-treasury-financial-metrics article:last-child strong {font-size:1.04rem;}
+.pdc-treasury .pdc-treasury-financial dl {margin:0;background:#fff;border:1px solid #e1e9e1;border-radius:10px;padding:12px 18px;}
+.pdc-treasury .pdc-treasury-financial dt {color:#526957;}
+.pdc-treasury .pdc-treasury-financial dd {font-weight:650;color:#173a27;}
+.pdc-treasury .pdc-treasury-financial .pdc-treasury-financial-disclaimer {margin:17px 0 0;padding:13px 15px;border-left:4px solid #d1ac31;border-radius:0 7px 7px 0;background:#fff8e5;color:#5a4d29;font-size:.87rem;line-height:1.55;}
+@media(max-width:800px){.pdc-treasury .pdc-treasury-financial-metrics{grid-template-columns:1fr}.pdc-treasury .pdc-treasury-financial-body{padding:16px}}
+@media(max-width:540px){.pdc-treasury .pdc-treasury-financial .pdc-treasury-financial-header{padding:21px 18px;gap:12px}.pdc-treasury .pdc-treasury-financial-icon{width:40px;height:40px;flex-basis:40px}.pdc-treasury .pdc-treasury-financial dl{padding:10px}}

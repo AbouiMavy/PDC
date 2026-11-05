@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './TreasuryDev.css';
 import './TreasuryIdentityT11.css';
+import './TreasuryFinancialT11.css';
 
 const API = '/__pdc_admin_api';
 const categories = {
@@ -216,9 +217,21 @@ export default function TreasuryDev() {
         </section>
         </div>
       </section>}
-      {selected && <section className="pdc-treasury-detail" aria-label="Détail de l'intention"><div className="pdc-treasury-detailhead"><h2>Détail financier</h2><button type="button" onClick={() => setSelected(null)}>Fermer</button></div><dl>
+      {selected && <section className="pdc-treasury-detail pdc-treasury-financial" aria-label="Détail de l'intention">
+        <div className="pdc-treasury-detailhead pdc-treasury-financial-header">
+          <span className="pdc-treasury-financial-icon" aria-hidden="true">04</span>
+          <h2>Détail financier</h2>
+          <button type="button" onClick={() => setSelected(null)}>Fermer</button>
+        </div>
+        <div className="pdc-treasury-financial-body">
+          <div className="pdc-treasury-financial-metrics" aria-label="Synthèse financière">
+            <article><span>Montant attendu</span><strong>{formatXaf(selected.expectedGrossXaf)}</strong></article>
+            <article><span>Montant affecté</span><strong>{formatXaf(selected.allocatedXaf)}</strong></article>
+            <article><span>État du paiement</span><strong>{statuses[selected.paymentStatus] || text(selected.paymentStatus)}</strong></article>
+          </div>
+          <dl>
         {[['ProductId',selected.productId],['Identifiant paiement',selected.paymentId],['Identifiant commande',selected.quoteId],['Nature',categories[selected.category] || 'À qualifier'],['État du paiement',statuses[selected.paymentStatus] || selected.paymentStatus],['Montant attendu',formatXaf(selected.expectedGrossXaf)],['Montant affecté',formatXaf(selected.allocatedXaf)],['Transaction marchande',selected.providerTransactionId],['Date de confirmation',formatDate(selected.confirmedAt)],['Formule diaspora',selected.diasporaFormula],['Montant légal diaspora',formatEur(selected.legalAmountEurCents)],['Nombre d’affectations',selected.allocationCount],['Qualification comptable', selected.category === 'don' && selected.paymentStatus === 'confirmed' && Number(selected.donationCount) > 0 ? 'Don qualifié · affectation enregistrée' : 'Non établie par le registre']].map(([key,value]) => <React.Fragment key={key}><dt>{key}</dt><dd>{text(value)}</dd></React.Fragment>)}
-      </dl><p>Montants observés, frais, net encaissé et justificatifs : consultation détaillée à raccorder après validation de la passerelle SQL. Aucune confirmation n'est possible depuis cette version.</p></section>}
+      </dl><p className="pdc-treasury-financial-disclaimer">Montants observés, frais, net encaissé et justificatifs : consultation détaillée à raccorder après validation de la passerelle SQL. Aucune confirmation n'est possible depuis cette version.</p></div></section>}
     </main>}
     <footer>Parti des Démocrates Camerounais · Trésorerie nationale · Environnement de développement</footer>
   </div>;

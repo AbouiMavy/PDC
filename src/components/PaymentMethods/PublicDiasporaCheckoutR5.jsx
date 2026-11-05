@@ -27,6 +27,7 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
     [partnerEmailStatus,setPartnerEmailStatus]=useState('');
   if(!enabled)return <p role="status">{fr?'Le dossier diaspora reste en mode prévisualisation : le parcours financier R5 DEV n’est pas activé.':
     'Diaspora application is in preview mode: the R5 DEV payment flow is disabled.'}</p>;
+  if(data.methode==='mobile'&&data.mobileMode==='direct')return <p role="status">{fr?'Paiement direct Mobile Money : raccordement serveur R5 requis avant toute demande de débit. Le dossier n’est pas encore transmis.':'Direct Mobile Money requires the R5 server route before initiating a debit. The application has not yet been sent.'}</p>;
   if(data.methode==='virement')return <p role="status">{fr?'Le virement diaspora exige une validation bancaire distincte et n’est pas activé dans cette recette R5. Sélectionnez un autre moyen pour un essai Sandbox.':'Diaspora bank transfers require separate bank verification and are not enabled in this R5 Sandbox.'}</p>;
   const api=import.meta.env.VITE_PDC_R5_API_ORIGIN;
   async function post(path,body){

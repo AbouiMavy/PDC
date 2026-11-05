@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import './PaymentMethodsT12.css';
 
 // Une seule grille pour Soutenir et Adherer. Aucun appel de paiement ici.
 export const PAYMENT_METHODS = Object.freeze(['mobile', 'tara', 'carte', 'virement']);
@@ -16,6 +17,7 @@ const RIB = Object.freeze({
  */
 export default function PaymentMethods({
   methode, onMethodeChange, messagerie, onMessagerieChange,
+  mobileMode='sms', onMobileModeChange=()=>{}, mobilePhone='', onMobilePhoneChange=()=>{},
   titleId = 'pdc-paiement', titlePrefix = '',
 }) {
   const { t } = useTranslation();
@@ -32,6 +34,24 @@ export default function PaymentMethods({
         <span><strong>{t(`donation.methods.${id}`)}</strong><small>{t(`donation.methodDetails.${id}`)}</small></span>
       </label>)}
     </div>
+    {methode === 'mobile' && <fieldset className="pdc-don-form__mobile-routes">
+      <legend>{t('donation.mobileRouteTitle')}</legend>
+      <label className="pdc-t12-route"><input type="radio" name="mobileRoute" value="sms"
+        checked={mobileMode==='sms'} onChange={()=>onMobileModeChange('sms')}/>
+        <span><strong>{t('donation.mobileSms')}</strong><small>{t('donation.mobileSmsDetails')}</small></span>
+      </label>
+      <label className="pdc-t12-route"><input type="radio" name="mobileRoute" value="direct"
+        checked={mobileMode==='direct'} onChange={()=>onMobileModeChange('direct')}/>
+        <span><strong>{t('donation.mobileDirect')}</strong><small>{t('donation.mobileDirectDetails')}</small></span>
+      </label>
+      {mobileMode==='direct' && <div className="pdc-t12-direct">
+        <label htmlFor={`${titleId}-direct-number`}>{t('donation.mobileDebitPhone')}</label>
+        <div className="pdc-t12-number"><span>+237</span><input id={`${titleId}-direct-number`}
+          type="tel" inputMode="tel" autoComplete="off" placeholder="6XX XXX XXX"
+          required maxLength={20} value={mobilePhone} onChange={e=>onMobilePhoneChange(e.target.value)}/></div>
+        <p>{t('donation.mobileDirectWarning')}</p>
+      </div>}
+    </fieldset>}
     {methode === 'tara' && <fieldset className="pdc-don-form__fieldset pdc-don-form__subchoix">
       <legend>{t('donation.taraChannel')}</legend>
       <div className="pdc-don-form__civilite">

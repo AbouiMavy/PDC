@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PaymentMethods from '../components/PaymentMethods/PaymentMethods';
+import {prepareMobileSelectionT12} from '../features/payments/mobile-money-t12.mjs';
 import PublicCheckoutV5C29, {publicCheckoutSandboxEnabled} from '../components/PaymentMethods/PublicCheckoutV5C29';
 import PublicDiasporaCheckoutR5, {diasporaR5Enabled} from '../components/PaymentMethods/PublicDiasporaCheckoutR5';
 import '../components/DonForm/DonForm.css';
@@ -62,6 +63,8 @@ export default function Adhesion() {
   const [error,setError]=useState('');
   const [methode,setMethode]=useState('mobile');
   const [messagerie,setMessagerie]=useState('whatsapp');
+  const [mobileMode,setMobileMode]=useState('sms');
+  const [mobilePhone,setMobilePhone]=useState('');
   // Uniquement en mémoire, aucune transmission ni persistance dans cette prévisualisation.
   const [photoMembre,setPhotoMembre]=useState(null);
   const [photoPartenaire,setPhotoPartenaire]=useState(null);
@@ -119,6 +122,8 @@ export default function Adhesion() {
     if(!domestic && !form.codePostal.trim())return setError(t.errors.postcode);
     if(!domestic && (!form.rattachementRegion || !form.rattachementDepartement || !rattachementCommune))return setError(t.errors.rattachement);
     if(!amounts)return setError(t.errors.partial);
+    try {prepareMobileSelectionT12({method:methode,mobileMode,mobilePhone});}
+    catch {return setError(donationText('donation.mobilePhoneError'));}
     if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validDOB(form.dateNaissancePartenaire) || !form.lieuNaissancePartenaire.trim() || !prefixForCivilite(form.civilitePartenaire) || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire || !form.accepteConversionDon))return setError(t.errors.partner);
     const photoError=validateCardSelection({requestCard:form.demandeCarte,isCouple:!domestic&&form.formule==='couple',photoMember:photoMembre,photoPartner:photoPartenaire});
     if(photoError)return setError(t.errors[photoError] || t.errors.photo);
@@ -298,7 +303,10 @@ export default function Adhesion() {
         </>}
         <div className="pdc-don-form pdc-adhesion-payment-methods">
           <PaymentMethods methode={methode} onMethodeChange={setMethode}
-            messagerie={messagerie} onMessagerieChange={setMessagerie} titleId="pdc-adhesion-paiement" titlePrefix="5. "/>
+            messagerie={messagerie} onMessagerieChange={setMessagerie}
+            mobileMode={mobileMode} onMobileModeChange={setMobileMode}
+            mobilePhone={mobilePhone} onMobilePhoneChange={setMobilePhone}
+            titleId="pdc-adhesion-paiement" titlePrefix="5. "/>
         </div>
         {isNew && <p className="pdc-adhesion-fee-note">{t.membershipLegal}</p>}
         <h2>6. {t.memberStatements}</h2>
@@ -337,17 +345,18 @@ export default function Adhesion() {
           {domestic&&<div><dt>{t.remaining}</dt><dd>{money(amounts?.resteAnnuel||0,'XAF')}</dd></div>}
         </> : <><div><dt>{t.uniqueId}</dt><dd>{form.numeroMilitant}</dd></div><div><dt>{t.email}</dt><dd>{form.email}</dd></div><div><dt>{t.remaining}</dt><dd>{t.remainderUnavailable}</dd></div></>}
         <div><dt>{t.payment}</dt><dd>{donationText(`donation.methods.${methode}`)}
-          {methode==='tara' ? ` — ${messagerie==='telegram'?'Telegram':messagerie==='dikalo'?'Dikalo':'WhatsApp'}` : ''}</dd></div>
+          {methode==='tara' ? ` — ${messagerie==='telegram'?'Telegram':messagerie==='dikalo'?'Dikalo':'WhatsApp'}` : ''}
+          {methode==='mobile' ? ` — ${donationText(mobileMode==='direct'?'donation.mobileDirect':'donation.mobileSms')}` : ''}</dd></div>
       </dl>
       {isNew && form.demandeCarte && (domestic || !diasporaR5Enabled()) && <p className="pdc-adhesion-alert" role="status">
         {lang==='en'
           ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
           : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
       </p>}
-      {!domestic ? <PublicDiasporaCheckoutR5 data={{form,amounts,methode,messagerie}}
+      {!domestic ? <PublicDiasporaCheckoutR5 data={{form,amounts,methode,messagerie,mobileMode,mobilePhone}}
           photoMember={photoMembre} photoPartner={photoPartenaire} language={lang}/>
         : publicCheckoutSandboxEnabled()
-          ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie}} language={lang}/>
+          ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie,mobileMode,mobilePhone}} language={lang}/>
           : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
       <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button>{!(domestic?publicCheckoutSandboxEnabled():diasporaR5Enabled())&&<button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button>}</div>
     </section>}

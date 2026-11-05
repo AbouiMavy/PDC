@@ -5,6 +5,7 @@ import { INDICATIFS } from './indicatifs';
 import { TERRITOIRES } from './territoires';
 import { communesPourDepartement } from '../../features/adhesion/communes-cm';
 import PaymentMethods from '../PaymentMethods/PaymentMethods';
+import {prepareMobileSelectionT12} from '../../features/payments/mobile-money-t12.mjs';
 import './DonForm.css';
 
 const MONTANTS = [500, 1000, 2500, 5000, 10000, 25000, 50000, 75000, 100000];
@@ -40,6 +41,8 @@ export default function DonForm({ onValidated }) {
   const [repartition,setRepartition] = useState({scrutateurs:'',cautionnements:'',campagne:'',autres:''});
   const [methode,setMethode] = useState('mobile');
   const [messagerie,setMessagerie] = useState('whatsapp');
+  const [mobileMode,setMobileMode] = useState('sms');
+  const [mobilePhone,setMobilePhone] = useState('');
   const [pays,setPays] = useState('CM');
   const [region,setRegion] = useState('');
   const [departement,setDepartement] = useState('');
@@ -76,6 +79,8 @@ export default function DonForm({ onValidated }) {
     if (!phoneValid(telephoneLocal,indicatif,pays)) return setErreur(t('donation.errors.phone'));
     if (!emailValid(values.email)) return setErreur(t('donation.errors.email'));
     if (!values.declaration) return setErreur(t('donation.errors.statement'));
+    try { prepareMobileSelectionT12({method:methode,mobileMode,mobilePhone}); }
+    catch { return setErreur(t('donation.mobilePhoneError')); }
     // Store ONLY in React component state via onValidated; nothing is sent externally.
     onValidated?.({
       civilite:values.civilite,nom:values.nom.trim(),prenom:values.prenom.trim(),
@@ -83,7 +88,7 @@ export default function DonForm({ onValidated }) {
       departement:auCameroun ? departement : (values.departement || departement),commune:communeValidee,
       codePostal:String(values.codePostal||'').trim(),
       periodicite,montant,affectation,repartition:affectation==='ciblee' ? {...repartition} : null,
-      methode,messagerie,anonymePublic:Boolean(values.anonymePublic),
+      methode,messagerie,mobileMode,mobilePhone:mobileMode==='direct'?mobilePhone:'',anonymePublic:Boolean(values.anonymePublic),
       telephoneE164:indicatif + (['FR','GB','DE'].includes(pays)
         ? telephoneLocal.replace(/[\s().-]/g,'').replace(/^0/,'')
         : telephoneLocal.replace(/[\s().-]/g,''))
@@ -175,7 +180,9 @@ export default function DonForm({ onValidated }) {
       <p className="pdc-don-form__aide">{t('donation.privacyInfo')}</p>
     </section>
     <PaymentMethods methode={methode} onMethodeChange={setMethode}
-      messagerie={messagerie} onMessagerieChange={setMessagerie} titleId="pdc-paiement"/>
+      messagerie={messagerie} onMessagerieChange={setMessagerie}
+      mobileMode={mobileMode} onMobileModeChange={setMobileMode}
+      mobilePhone={mobilePhone} onMobilePhoneChange={setMobilePhone} titleId="pdc-paiement"/>
     <section className="pdc-don-form__section" aria-labelledby="pdc-declaration"><h2 id="pdc-declaration">{t('donation.statementTitle')}</h2>
       <label className="pdc-don-form__attestation"><input name="declaration" type="checkbox" required/><span>{t('donation.statement')} <strong>*</strong></span></label>
       <p className="pdc-don-form__aide">{t('donation.statementHelp')}</p>

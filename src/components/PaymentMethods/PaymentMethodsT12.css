@@ -1,0 +1,15 @@
+/* T12 — explicite et responsive, cohérent avec la charte PDC. */
+.pdc-don-form__mobile-routes { border:1px solid #c9decf; border-radius:12px; padding:17px 18px; background:#f6faf6; margin:16px 0; }
+.pdc-don-form__mobile-routes legend { color:#0d5931; font-weight:800; padding:0 7px; }
+.pdc-don-form__mobile-routes .pdc-t12-route {display:flex;gap:10px;align-items:flex-start;padding:12px 13px;margin:7px 0;border:1px solid #d3e2d7;border-radius:9px;background:white;cursor:pointer;}
+.pdc-don-form__mobile-routes .pdc-t12-route:has(input:checked) {border:2px solid #0d5931;background:#edf6ee;padding:11px 12px;}
+.pdc-don-form__mobile-routes .pdc-t12-route input {margin-top:4px;accent-color:#0d5931;flex-shrink:0;}
+.pdc-don-form__mobile-routes .pdc-t12-route strong {display:block;font-size:.98rem;color:#123f2a;}
+.pdc-don-form__mobile-routes .pdc-t12-route small {display:block;font-size:.82rem;color:#516e59;line-height:1.5;margin-top:3px;}
+.pdc-don-form__mobile-routes .pdc-t12-direct {margin:12px 0 0;padding:14px;border-radius:8px;background:#fff;border-left:4px solid #d5af32;}
+.pdc-don-form__mobile-routes .pdc-t12-direct label {font-weight:750;display:block;margin-bottom:8px;}
+.pdc-don-form__mobile-routes .pdc-t12-number {display:flex;align-items:center;max-width:350px;border:1px solid #aec9b6;border-radius:7px;overflow:hidden;}
+.pdc-don-form__mobile-routes .pdc-t12-number span {padding:12px;background:#e7f0e9;color:#174d31;font-weight:750;}
+.pdc-don-form__mobile-routes .pdc-t12-number input {width:100%;min-width:0;border:0;padding:12px;font:inherit;min-height:44px;}
+.pdc-don-form__mobile-routes .pdc-t12-direct p {color:#516e59;font-size:.83rem;line-height:1.5;margin:9px 0 0;}
+@media(max-width:600px){.pdc-don-form__mobile-routes{padding:14px 11px}.pdc-don-form__mobile-routes .pdc-t12-number{max-width:none}}
