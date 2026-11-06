@@ -23,14 +23,20 @@ const EXTERNAL = 'pending_external_payment';
  */
 export function makePublicCheckoutCoordinatorV5C({orders,taraReservations,
   createProductId=()=>`PDC_${randomBytes(18).toString('base64url')}`,
-  taraIssuer=null,issueLinks=false,enabled=false,environment='disabled'}={}) {
+  taraIssuer=null,issueLinks=false,mobileDirect=null,mobileDirectEnabled=false,
+  enabled=false,environment='disabled'}={}) {
   if (enabled!==true || environment!=='sandbox') fail('PDC_PUBLIC_COORDINATOR_DISABLED');
   if (typeof orders?.create!=='function' || typeof taraReservations?.reserveCheckout!=='function' ||
       typeof createProductId!=='function' ||
-      (issueLinks!==false && (issueLinks!==true || typeof taraIssuer?.issue!=='function')))
+      (issueLinks!==false && (issueLinks!==true || typeof taraIssuer?.issue!=='function')) ||
+      (mobileDirectEnabled!==false && (mobileDirectEnabled!==true ||
+         typeof mobileDirect?.initiate!=='function')))
     fail('PDC_PUBLIC_COORDINATOR_DEPENDENCY_INVALID');
 
   async function create(raw) {
+    // Interdit toute commande direct si le branchement serveur est inactif.
+    if(raw?.method==='mobile' && raw?.mobileMode==='direct' &&
+       mobileDirectEnabled!==true)fail('PDC_PUBLIC_MOBILE_DIRECT_DISABLED');
     // La validation exhaustive des données publiques, des tarifs et du digest
     // s'effectue dans orders.create(), avant sa RPC SQL transactionnelle.
     const order=await orders.create(raw);
@@ -70,6 +76,20 @@ export function makePublicCheckoutCoordinatorV5C({orders,taraReservations,
         row.currency!=='XAF' ||
         !['reserved','requested','issued','unknown','cancelled'].includes(row.linkState))
       fail('PDC_PUBLIC_COORDINATOR_RESERVATION_INVALID');
+
+    // Débit Mobile Pay : route distincte, jamais d'émetteur SMS ou generalLink.
+    if(order.method==='mobile' && order.mobileMode==='direct') {
+      if(mobileDirectEnabled!==true || !/^2376\d{8}$/.test(order.mobilePhone??''))
+        fail('PDC_PUBLIC_DIRECT_CONTRACT_INVALID');
+      const result=await mobileDirect.initiate({order,row,idempotencyKey:checkout.idempotencyKey});
+      if(!result || !['request_initiated','request_rejected','manual_review'].includes(result.status)||
+         result.productId!==row.productId||result.paymentId!==row.paymentId||
+         result.grossAmountXaf!==row.amountXaf||result.currency!=='XAF'||
+         result.paymentConfirmed!==false||result.membershipGranted!==false||
+         result.paymentUrl!=null||result.linkField!=null)
+        fail('PDC_PUBLIC_DIRECT_RESULT_INVALID');
+      return Object.freeze(result);
+    }
 
     // Émission DEV explicitement activée ; sinon comportement historique sûr.
     if (issueLinks===true) {

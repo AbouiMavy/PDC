@@ -1,5 +1,6 @@
 // V5-C.29 — adaptation locale des deux formulaires vers le contrat public V5-C.23.
 // Aucune requête, secret ni autorisation de paiement dans ce fichier.
+import {prepareMobileSelectionT12} from './mobile-money-t12.mjs';
 const METHODS = new Set(['mobile', 'tara', 'carte', 'virement']);
 const PURPOSES = ['scrutateurs','cautionnements','campagne','autres'];
 const positive = value => /^\d+$/.test(String(value)) && Number.isSafeInteger(Number(value)) && Number(value)>=0;
@@ -16,13 +17,16 @@ function residence(raw, country) {
   return result;
 }
 
-function common({firstName,lastName,email,phoneE164,country,method,messagingChannel},idempotencyKey) {
+function common({firstName,lastName,email,phoneE164,country,method,messagingChannel,mobileMode,mobilePhone},idempotencyKey) {
   if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9:_-]{16,128}$/.test(idempotencyKey)) fail('INVALID_REFERENCE');
   if (!METHODS.has(method) || (method==='tara' && !['general','whatsapp','telegram','dikalo'].includes(messagingChannel)) ||
       (method!=='tara' && messagingChannel!=null)) fail('INVALID_CHANNEL');
   if (![firstName,lastName,email,phoneE164,country].every(x=>typeof x==='string' && x.length>0)) fail('MISSING_IDENTITY');
+  const direct=method==='mobile' && mobileMode==='direct';
+  const selection=direct?prepareMobileSelectionT12({method,mobileMode,mobilePhone}):null;
   return {idempotencyKey,firstName,lastName,email,phoneE164,country,method,
-    ...(method==='tara'?{messagingChannel}: {})};
+    ...(method==='tara'?{messagingChannel}: {}),
+    ...(direct?{mobileMode:'direct',mobilePhone:selection.phoneE164}:{})};
 }
 
 /** Répartir exactement 10 000 points de base sans virgules flottantes.
@@ -56,7 +60,8 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
     if (!positive(data.montant) || Number(data.montant)<100 || Number(data.montant)>100000000) fail('INVALID_AMOUNT');
     const base=common({firstName:data.prenom,lastName:data.nom,email:data.email,
       phoneE164:data.telephoneE164,country:data.pays,method:data.methode,
-      messagingChannel:data.methode==='tara'?data.messagerie:null},idempotencyKey);
+      messagingChannel:data.methode==='tara'?data.messagerie:null,
+      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone},idempotencyKey);
     const designations=data.affectation==='libre'?[{purpose:'libre',percentBps:10000}]:
       data.affectation==='ciblee'?allocationInBasisPoints(data.montant,data.repartition):fail('INVALID_ALLOCATION');
     return Object.freeze({kind:'donation',...base,amountXaf:String(data.montant),
@@ -81,7 +86,8 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
     const base=common({firstName:f.prenom,lastName:f.nom,email:f.email,
       phoneE164:'+237'+String(f.telephone||'').replace(/[\s().-]/g,''),
       country:'CM',method:data.methode,
-      messagingChannel:data.methode==='tara'?data.messagerie:null},idempotencyKey);
+      messagingChannel:data.methode==='tara'?data.messagerie:null,
+      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone},idempotencyKey);
     return Object.freeze({kind:'initial_membership',...base,dob:f.dateNaissance,
       birthPlace:f.lieuNaissance,civility:f.civilite,memberCategory:f.categorie,
       acceptedStatutes:true,acceptedDataNotice:true,annualMode:f.modeCotisation,annualPaymentXaf:String(annualPaid),

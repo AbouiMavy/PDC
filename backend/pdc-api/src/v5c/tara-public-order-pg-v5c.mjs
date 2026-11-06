@@ -46,6 +46,7 @@ export async function makePublicOrderPgV5C({pool,enabled=false,environment='disa
         beneficiary_ids:row.beneficiaryIds});
       return Object.freeze({paymentId:row.paymentId,quote,
         method:p.method,messagingChannel:p.messagingChannel,
+        mobileMode:p.mobileMode??'sms',mobilePhone:p.mobilePhone??null,
         grossAmountXaf:p.grossAmountXaf,currency:'XAF',
         paymentConfirmed:false,membershipGranted:false});
     }

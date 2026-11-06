@@ -4,6 +4,7 @@ import {makePendingReceiptV5C44} from '../../features/payments/manual-receipt-v5
 import {savePendingReturnR5} from '../../features/payments/return-session-r5.mjs';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {buildPublicOrderPayload,validatePublicCheckoutResponse} from '../../features/payments/public-checkout-payload-v5c29.mjs';
+import {validateMobileDirectResponseT12} from '../../features/payments/mobile-direct-response-t12.mjs';
 
 // Double verrou explicite: l'activation Vite expose seulement une clé de site PUBLIQUE.
 // Aucun secret DB/Tara/Turnstile ne doit figurer dans les variables VITE_*.
@@ -94,7 +95,8 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
   const requestedMethod=data?.methode;
   const requestedChannel=data?.methode==='tara'?data?.messagerie:null;
   if(!enabled)return null;
-  if(requestedMethod==='mobile' && data?.mobileMode==='direct') return <p role="status">{lang==='fr'?'Paiement direct Mobile Money : raccordement serveur DEV requis avant toute demande de débit. Aucune demande de paiement n’a été envoyée.':'Direct Mobile Money: DEV server integration is required before initiating a debit. No payment request was sent.'}</p>;
+  if(requestedMethod==='mobile' && data?.mobileMode==='direct' &&
+     import.meta.env.VITE_PDC_V5C29_MOBILE_DIRECT_ENABLED!=='true') return <p role="status">{lang==='fr'?'Paiement direct Mobile Money : raccordement serveur DEV requis avant toute demande de débit. Aucune demande de paiement n’a été envoyée.':'Direct Mobile Money: DEV server integration is required before initiating a debit. No payment request was sent.'}</p>;
   const apiOrigin=import.meta.env.VITE_PDC_V5C29_API_ORIGIN || '';
   async function submit(){
     if(started || busy || !order.data || !token)return;
@@ -108,7 +110,9 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
       });
       if(!response.ok)throw new Error('HTTP_FAILED');
       const json=await response.json();
-      setStatus({result:validatePublicCheckoutResponse(json,requestedMethod,requestedChannel)});
+      setStatus({result:requestedMethod==='mobile'&&data?.mobileMode==='direct'
+        ?validateMobileDirectResponseT12(json)
+        :validatePublicCheckoutResponse(json,requestedMethod,requestedChannel)});
     }catch{
       // Même après timeout, la commande peut exister. Ne jamais rejouer automatiquement.
       setStatus({error:'UNKNOWN_OUTCOME'});
@@ -129,8 +133,13 @@ export default function PublicCheckoutV5C29({source,data,language='fr'}){
       {status?.error&&<p role="alert">{m.unavailable}</p>}
       {result&&<>
         <p><strong>{result.paymentId}</strong> — {result.grossAmountXaf} FCFA</p>
-        <p role="status">{result.status==='issued'?m.issued:result.status==='manual_review'?m.manual:
+        <p role="status">{result.status==='request_initiated'
+          ?(lang==='fr'?'Demande Mobile Money transmise. Confirmez-la sur votre téléphone. Encaissement NON confirmé, rapprochement manuel obligatoire.':'Mobile Money request submitted. Approve it on your phone. Payment NOT confirmed; manual verification required.')
+          :result.status==='request_rejected'
+          ?(lang==='fr'?'Le prestataire a refusé le lancement du débit. Aucun paiement confirmé.':'The provider rejected the debit request. No payment is confirmed.')
+          :result.status==='issued'?m.issued:result.status==='manual_review'?m.manual:
           result.status==='pending_external_payment'?m.bank:m.pending}</p>
+        {result.productId&&<p><strong>ProductId TaraMoney : </strong><code>{result.productId}</code></p>}
         {result.status==='issued'&&<section className="pdc-checkout-v5c29__stage" aria-label={lang==='fr'?'Étape paiement':'Payment step'}>
           <h3>{lang==='fr'?'1. Procéder au paiement':'1. Proceed to payment'}</h3>
           <p>{lang==='fr'

@@ -54,8 +54,7 @@ BEGIN
       p.amount_minor=o.provider_amount_xaf) THEN
     RETURN false; END IF;
  UPDATE pdc_private.tara_checkout_intents_v5c SET
-   link_state='requested', requested_at=now(),
-   selected_method='mobile', selected_messaging_channel=NULL
+   link_state='requested', requested_at=now()
   WHERE product_id=i.product_id AND link_state='reserved';
  IF NOT FOUND THEN RETURN false; END IF;
  INSERT INTO pdc_private.t12_r5_mobile_direct_dev

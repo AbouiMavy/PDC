@@ -97,7 +97,8 @@ export function createPublicOrderHttpV5C({repository,enforceRateLimit,verifyHuma
       // La page générale multi-moyens est volontairement interdite ici.
       const status=result.status??'pending_payment_setup';
       if (!['pending_payment_setup','reserved_channel_pending',
-             'pending_external_payment','manual_review','issued'].includes(status))
+             'pending_external_payment','manual_review','issued',
+             'request_initiated','request_rejected'].includes(status))
         err('PDC_PUBLIC_HTTP_RESULT_INVALID');
       const publicResult={status,paymentId:result.paymentId,
         grossAmountXaf:result.grossAmountXaf,currency:'XAF',
@@ -119,7 +120,26 @@ export function createPublicOrderHttpV5C({repository,enforceRateLimit,verifyHuma
         publicResult.linkField=result.linkField;
         publicResult.paymentUrl=result.paymentUrl;
       }
-      return respond(res,status==='manual_review'?202:status==='issued'?200:201,publicResult,cors);
+      if(['request_initiated','request_rejected'].includes(status)) {
+        if(typeof result.productId!=='string'||!/^PDC_[A-Za-z0-9_-]{24}$/.test(result.productId)||
+           result.providerStatus!==(status==='request_initiated'?'SUCCESS':'FAILURE')||
+           typeof result.providerMessage!=='string'||
+           !/^[A-Za-z0-9_ -]{1,80}$/.test(result.providerMessage)||
+           (result.vendor!=null&&!/^[A-Z][A-Z0-9_]{1,63}$/.test(result.vendor))||
+           result.paymentUrl!=null||result.linkField!=null)
+          err('PDC_PUBLIC_HTTP_RESULT_INVALID');
+        publicResult.productId=result.productId;
+        publicResult.providerStatus=result.providerStatus;
+        publicResult.providerMessage=result.providerMessage;
+        publicResult.vendor=result.vendor??null;
+      } else if(status==='manual_review' && result.productId!=null) {
+        if(!/^PDC_[A-Za-z0-9_-]{24}$/.test(result.productId)||
+           result.paymentUrl!=null||result.linkField!=null)
+          err('PDC_PUBLIC_HTTP_RESULT_INVALID');
+        publicResult.productId=result.productId;
+      }
+      return respond(res,['manual_review','request_initiated','request_rejected'].includes(status)?202:
+        status==='issued'?200:201,publicResult,cors);
     } catch (error) {
       const badInput=error instanceof V5CError && (
         /^PDC_PUBLIC_(CONTENT_TYPE|BODY|ORDER|DONATION|MEMBERSHIP|PAYMENT_CHANNEL|DESIGNATION|AMOUNT)_INVALID$/.test(error.code) ||

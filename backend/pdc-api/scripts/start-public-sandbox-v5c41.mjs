@@ -10,6 +10,10 @@ import {composeProtectedPublicSandboxV5C29}
   from '../src/v5c/public-sandbox-composition-v5c29.mjs';
 import {makeTaraServerClient}
   from '../src/v5c/tara-server-client-v5c.mjs';
+import {makeTaraMobilePayClientT12}
+  from '../src/v5c/tara-mobilepay-client-t12.mjs';
+import {decidePublicMobileActivationT12D,assertPublicMobileSqlReadyT12D}
+  from '../src/v5c/t12c-activation-gate.mjs';
 
 const env=process.env;
 
@@ -73,6 +77,8 @@ let server;
 
 try {
   const cfg=config();
+  // OFF par défaut. Deux opt-ins serveur + schéma SQL complet exigés.
+  const mobileMode=decidePublicMobileActivationT12D(env);
 
   // apiKey = clé Sandbox.
   // businessId = identifiant marchand commun aux deux modes.
@@ -123,12 +129,24 @@ try {
     caFile:env.PDC_V5C30_DB_CA_FILE
   });
 
+  if(mobileMode.enabled)await assertPublicMobileSqlReadyT12D(pool);
+  // La clé Tara n'est utilisée que côté serveur, pour la route directe.
+  const mobileClient=mobileMode.enabled
+    ?makeTaraMobilePayClientT12({
+       apiKey:env.PDC_V5C41_TARA_SANDBOX_API_KEY,
+       businessId:env.PDC_V5C41_TARA_BUSINESS_ID,
+       environment:'sandbox',allowNetwork:true})
+    :null;
+
   const app=await composeProtectedPublicSandboxV5C29({
     pool,
     enabled:true,
     environment:'sandbox',
     issueLinks:true,
     taraClient,
+    mobileDirectEnabled:mobileMode.enabled,
+    mobileClient,
+    mobilePhoneHmacKey:mobileMode.enabled?env.PDC_V5C41_MOBILE_HMAC_SECRET:null,
     returnUrl:cfg.returnUrl,
     webHookUrl:cfg.webHookUrl,
     hmacSecret:env.PDC_V5C30_RATE_HMAC_SECRET,

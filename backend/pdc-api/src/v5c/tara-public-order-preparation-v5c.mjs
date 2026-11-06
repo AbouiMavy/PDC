@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto';
 import { V5CError } from './contracts.mjs';
 import { normalizeDonationDesignations } from './donations.mjs';
+import {normalizeCameroonDebitT12C} from './mobile-direct-public-t12c.mjs';
 
 const fail = code => { throw new V5CError(code); };
 const METHODS = new Set(['mobile','tara','carte','virement']);
@@ -16,7 +17,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+[1-9][0-9]{6,14}$/;
 const allowedFields = new Set(['kind','idempotencyKey','firstName','lastName','email','phoneE164',
   'country','method','messagingChannel','amountXaf','designations','dob','birthPlace',
-  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration','residence']);
+  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration','residence','mobileMode','mobilePhone']);
 const name = (v,max=100) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= max &&
   !/[\u0000-\u001f\u007f<>]/.test(v);
 const isoDate = value => {
@@ -62,6 +63,16 @@ export function preparePublicOrderRequest(raw) {
     fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');
   if (raw.method !== 'tara' && raw.messagingChannel != null)
     fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');
+  const direct=raw.method==='mobile' && raw.mobileMode==='direct';
+  if((raw.mobileMode!=null && raw.mobileMode!=='sms' && raw.mobileMode!=='direct') ||
+      (raw.method!=='mobile' && (raw.mobileMode!=null || raw.mobilePhone!=null)) ||
+      (!direct && raw.mobilePhone!=null))
+    fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');
+  let mobilePhone=null;
+  if(direct) {
+    try {mobilePhone=normalizeCameroonDebitT12C(raw.mobilePhone);}
+    catch {fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');}
+  }
 
   let kind, grossAmountXaf, designations = null, membership = null;
   if (raw.kind === 'donation') {
@@ -106,7 +117,11 @@ export function preparePublicOrderRequest(raw) {
   };
   // Digest canonique à passer à une RPC privée : le même idempotencyKey ne
   // peut pas servir à changer le montant, la personne ou le moyen de paiement.
-  const requestDigest = createHash('sha256').update(JSON.stringify(order)).digest('hex');
-  return Object.freeze({ ...order,requestDigest, currency:'XAF',
+  // SMS historiques : empreinte strictement identique aux anciennes requêtes.
+  // Direct : numéro débité et route font partie de l'empreinte idempotente.
+  const digestInput=direct?{...order,mobileMode:'direct',mobilePhone}:order;
+  const requestDigest = createHash('sha256').update(JSON.stringify(digestInput)).digest('hex');
+  return Object.freeze({ ...order,...(direct?{mobileMode:'direct',mobilePhone}:{}),
+    requestDigest, currency:'XAF',
     paymentConfirmed:false, membershipGranted:false });
 }
