@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { V5CError } from './contracts.mjs';
 import { normalizeDonationDesignations } from './donations.mjs';
-import {normalizeCameroonDebitT12C} from './mobile-direct-public-t12c.mjs';
+import {normalizeMobileWalletT12G} from '../../../../shared/mobile-wallet-t12g.mjs';
 
 const fail = code => { throw new V5CError(code); };
 const METHODS = new Set(['mobile','tara','carte','virement']);
@@ -17,7 +17,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+[1-9][0-9]{6,14}$/;
 const allowedFields = new Set(['kind','idempotencyKey','firstName','lastName','email','phoneE164',
   'country','method','messagingChannel','amountXaf','designations','dob','birthPlace',
-  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration','residence','mobileMode','mobilePhone']);
+  'civility','memberCategory','annualMode','annualPaymentXaf','acceptedStatutes','acceptedDataNotice','donorDeclaration','residence','mobileMode','mobilePhone','mobileCountry','mobileNetwork']);
 const name = (v,max=100) => typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= max &&
   !/[\u0000-\u001f\u007f<>]/.test(v);
 const isoDate = value => {
@@ -66,12 +66,16 @@ export function preparePublicOrderRequest(raw) {
   const direct=raw.method==='mobile' && raw.mobileMode==='direct';
   if((raw.mobileMode!=null && raw.mobileMode!=='sms' && raw.mobileMode!=='direct') ||
       (raw.method!=='mobile' && (raw.mobileMode!=null || raw.mobilePhone!=null)) ||
-      (!direct && raw.mobilePhone!=null))
+      (!direct && (raw.mobilePhone!=null||raw.mobileCountry!=null||raw.mobileNetwork!=null)))
     fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');
-  let mobilePhone=null;
+  let mobilePhone=null,mobileCountry=null,mobileNetwork=null;
   if(direct) {
-    try {mobilePhone=normalizeCameroonDebitT12C(raw.mobilePhone);}
-    catch {fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');}
+    try {
+      const wallet=normalizeMobileWalletT12G({mobileCountry:raw.mobileCountry??'CM',
+        mobilePhone:raw.mobilePhone,mobileNetwork:raw.mobileNetwork??null});
+      mobilePhone=wallet.providerPhone;mobileCountry=wallet.mobileCountry;
+      mobileNetwork=wallet.mobileNetwork;
+    } catch {fail('PDC_PUBLIC_PAYMENT_CHANNEL_INVALID');}
   }
 
   let kind, grossAmountXaf, designations = null, membership = null;
@@ -119,9 +123,11 @@ export function preparePublicOrderRequest(raw) {
   // peut pas servir à changer le montant, la personne ou le moyen de paiement.
   // SMS historiques : empreinte strictement identique aux anciennes requêtes.
   // Direct : numéro débité et route font partie de l'empreinte idempotente.
-  const digestInput=direct?{...order,mobileMode:'direct',mobilePhone}:order;
+  const digestInput=direct?{...order,mobileMode:'direct',mobilePhone,
+    mobileCountry,mobileNetwork}:order;
   const requestDigest = createHash('sha256').update(JSON.stringify(digestInput)).digest('hex');
-  return Object.freeze({ ...order,...(direct?{mobileMode:'direct',mobilePhone}:{}),
+  return Object.freeze({ ...order,...(direct?{mobileMode:'direct',mobilePhone,
+      mobileCountry,mobileNetwork}:{}),
     requestDigest, currency:'XAF',
     paymentConfirmed:false, membershipGranted:false });
 }

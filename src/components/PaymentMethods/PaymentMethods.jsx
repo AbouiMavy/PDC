@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './PaymentMethodsT12.css';
+import {MOBILE_WALLET_COUNTRIES_T12G,mobileWalletCountryT12G} from '../../../shared/mobile-wallet-t12g.mjs';
 
 // Une seule grille pour Soutenir et Adherer. Aucun appel de paiement ici.
 export const PAYMENT_METHODS = Object.freeze(['mobile', 'tara', 'carte', 'virement']);
@@ -18,10 +19,13 @@ const RIB = Object.freeze({
 export default function PaymentMethods({
   methode, onMethodeChange, messagerie, onMessagerieChange,
   mobileMode='sms', onMobileModeChange=()=>{}, mobilePhone='', onMobilePhoneChange=()=>{},
+  mobileCountry='CM',onMobileCountryChange=()=>{},mobileNetwork=null,onMobileNetworkChange=()=>{},
   titleId = 'pdc-paiement', titlePrefix = '',
 }) {
-  const { t } = useTranslation();
+  const {t,i18n} = useTranslation();
   const [copie, setCopie] = useState('');
+  const wallet=mobileWalletCountryT12G(mobileCountry);
+  const en=(i18n.resolvedLanguage||i18n.language||'fr').startsWith('en');
   async function copier(value, field) {
     try { await navigator.clipboard.writeText(value); setCopie(field); }
     catch { setCopie('error'); }
@@ -45,9 +49,25 @@ export default function PaymentMethods({
         <span><strong>{t('donation.mobileDirect')}</strong><small>{t('donation.mobileDirectDetails')}</small></span>
       </label>
       {mobileMode==='direct' && <div className="pdc-t12-direct">
+        <label htmlFor={`${titleId}-wallet-country`}>{t('donation.walletCountry')}</label>
+        <select id={`${titleId}-wallet-country`} className="pdc-t12-country" value={mobileCountry}
+          onChange={e=>{onMobileCountryChange(e.target.value);onMobileNetworkChange(null);onMobilePhoneChange('');}}>
+          {MOBILE_WALLET_COUNTRIES_T12G.map(c=><option key={c.code} value={c.code}>
+            {en?c.en:c.fr} (+{c.dialCode})
+          </option>)}
+        </select>
+        {wallet.wave&&<fieldset className="pdc-t12-network">
+          <legend>{t('donation.walletNetwork')}</legend>
+          <label><input type="radio" name={`${titleId}-wallet-network`} value="standard"
+            checked={mobileNetwork!=='Wave'} onChange={()=>onMobileNetworkChange(null)}/>
+            {t('donation.walletOther')}</label>
+          <label><input type="radio" name={`${titleId}-wallet-network`} value="Wave"
+            checked={mobileNetwork==='Wave'} onChange={()=>onMobileNetworkChange('Wave')}/>Wave</label>
+        </fieldset>}
         <label htmlFor={`${titleId}-direct-number`}>{t('donation.mobileDebitPhone')}</label>
-        <div className="pdc-t12-number"><span>+237</span><input id={`${titleId}-direct-number`}
-          type="tel" inputMode="tel" autoComplete="off" placeholder="6XX XXX XXX"
+        <div className="pdc-t12-number"><span>+{wallet.dialCode}</span><input id={`${titleId}-direct-number`}
+          type="tel" inputMode="tel" autoComplete="off"
+          placeholder={mobileCountry==='CM'?'6XX XXX XXX':t('donation.walletPhonePlaceholder')}
           required maxLength={20} value={mobilePhone} onChange={e=>onMobilePhoneChange(e.target.value)}/></div>
         <p>{t('donation.mobileDirectWarning')}</p>
       </div>}

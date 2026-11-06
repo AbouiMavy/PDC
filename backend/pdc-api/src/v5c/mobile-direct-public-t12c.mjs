@@ -1,6 +1,7 @@
 // PDC T12-C : Mobile Money direct pour don / adhésion Cameroun, DEV isolé.
 // AUCUNE relance après erreur/timeout. SUCCESS fournisseur != paiement confirmé.
 import {createHmac} from 'node:crypto';
+import {normalizeMobileWalletT12G} from '../../../../shared/mobile-wallet-t12g.mjs';
 
 const PRODUCT=/^PDC_[A-Za-z0-9_-]{24}$/;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -35,7 +36,11 @@ export async function makePublicMobileDirectT12C({pool,mobileClient,webHookUrl,p
         order.paymentId!==row.paymentId||order.quote.quoteId!==row.quoteId||
         order.quote.payerId!==row.payerId||row.amountXaf!==order.quote.amountMinor||
         !VALUE.test(String(row.amountXaf??''))||row.currency!=='XAF')fail('ORDER_INVALID');
-      const phone=normalizeCameroonDebitT12C(order.mobilePhone);
+      let wallet;
+      try {wallet=normalizeMobileWalletT12G({mobileCountry:order.mobileCountry??'CM',
+        mobilePhone:order.mobilePhone,mobileNetwork:order.mobileNetwork??null});}
+      catch {fail('PHONE_INVALID');}
+      const phone=wallet.providerPhone;
       const digest=createHmac('sha256',phoneHmacKey).update(phone).digest('hex');
       const base=Object.freeze({paymentId:row.paymentId,productId:row.productId,
         grossAmountXaf:row.amountXaf,currency:'XAF',paymentConfirmed:false,membershipGranted:false});
@@ -51,6 +56,7 @@ export async function makePublicMobileDirectT12C({pool,mobileClient,webHookUrl,p
           productId:row.productId,
           productName:order.quote.kind==='donation'?'Don au PDC':'Première adhésion PDC',
           amountXaf:row.amountXaf,phoneNumber:phone,webHookUrl,
+          ...(wallet.mobileNetwork==='Wave'?{network:'Wave'}:{}),
         });
         if(!launched||launched.productId!==row.productId||
            !['request_initiated','request_rejected'].includes(launched.status)||

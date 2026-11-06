@@ -2,6 +2,7 @@
 // La page multi-moyens generalLink n'est jamais renvoyée à un canal sélectionné.
 // Le lot DEV ne crée aucune route, n'appelle aucun prestataire et ne confirme rien.
 import { randomBytes } from 'node:crypto';
+import {normalizeMobileWalletT12G} from '../../../../shared/mobile-wallet-t12g.mjs';
 import { preparePrivateCheckout, V5CError } from './contracts.mjs';
 import { validateStoredTaraChannelLink, TARA_LINK_FIELDS } from './tara-channel-links-v5c.mjs';
 // V5C27: public channel issuance is explicitly opt-in.
@@ -79,8 +80,10 @@ export function makePublicCheckoutCoordinatorV5C({orders,taraReservations,
 
     // Débit Mobile Pay : route distincte, jamais d'émetteur SMS ou generalLink.
     if(order.method==='mobile' && order.mobileMode==='direct') {
-      if(mobileDirectEnabled!==true || !/^2376\d{8}$/.test(order.mobilePhone??''))
-        fail('PDC_PUBLIC_DIRECT_CONTRACT_INVALID');
+      if(mobileDirectEnabled!==true)fail('PDC_PUBLIC_DIRECT_CONTRACT_INVALID');
+      try {normalizeMobileWalletT12G({mobileCountry:order.mobileCountry??'CM',
+        mobilePhone:order.mobilePhone,mobileNetwork:order.mobileNetwork??null});}
+      catch {fail('PDC_PUBLIC_DIRECT_CONTRACT_INVALID');}
       const result=await mobileDirect.initiate({order,row,idempotencyKey:checkout.idempotencyKey});
       if(!result || !['request_initiated','request_rejected','manual_review'].includes(result.status)||
          result.productId!==row.productId||result.paymentId!==row.paymentId||

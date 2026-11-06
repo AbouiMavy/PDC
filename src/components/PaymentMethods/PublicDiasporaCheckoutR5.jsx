@@ -70,6 +70,10 @@ export default function PublicDiasporaCheckoutR5({data,photoMember,photoPartner,
         method:data.methode,messagingChannel:data.methode==='tara'?data.messagerie:null,
         mobileMode:data.methode==='mobile'?(data.mobileMode||'sms'):null,
         mobilePhone:data.methode==='mobile'&&data.mobileMode==='direct'?data.mobilePhone:null,
+        ...(data.methode==='mobile'&&data.mobileMode==='direct'?{
+          mobileCountry:data.mobileCountry||'CM',
+          ...(data.mobileNetwork?{mobileNetwork:data.mobileNetwork}:{})
+        }:{}),
         language:language==='en'?'en':'fr'});
       const validated=data.methode==='mobile'&&data.mobileMode==='direct'
         ? validateMobileDirectResponseT12(raw)

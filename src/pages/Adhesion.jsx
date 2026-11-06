@@ -65,6 +65,8 @@ export default function Adhesion() {
   const [messagerie,setMessagerie]=useState('whatsapp');
   const [mobileMode,setMobileMode]=useState('sms');
   const [mobilePhone,setMobilePhone]=useState('');
+  const [mobileCountry,setMobileCountry] = useState('CM');
+  const [mobileNetwork,setMobileNetwork] = useState(null);
   // Uniquement en mémoire, aucune transmission ni persistance dans cette prévisualisation.
   const [photoMembre,setPhotoMembre]=useState(null);
   const [photoPartenaire,setPhotoPartenaire]=useState(null);
@@ -122,7 +124,7 @@ export default function Adhesion() {
     if(!domestic && !form.codePostal.trim())return setError(t.errors.postcode);
     if(!domestic && (!form.rattachementRegion || !form.rattachementDepartement || !rattachementCommune))return setError(t.errors.rattachement);
     if(!amounts)return setError(t.errors.partial);
-    try {prepareMobileSelectionT12({method:methode,mobileMode,mobilePhone});}
+    try {prepareMobileSelectionT12({method:methode,mobileMode,mobilePhone,mobileCountry,mobileNetwork});}
     catch {return setError(donationText('donation.mobilePhoneError'));}
     if(!domestic && form.formule==='couple' && (!form.nomPartenaire.trim() || !form.prenomPartenaire.trim() || !validDOB(form.dateNaissancePartenaire) || !form.lieuNaissancePartenaire.trim() || !prefixForCivilite(form.civilitePartenaire) || !validEmail(form.emailPartenaire) || !validatePhone(form.telephonePartenaire,form.pays) || !form.consentPartenaire || !form.accepteConversionDon))return setError(t.errors.partner);
     const photoError=validateCardSelection({requestCard:form.demandeCarte,isCouple:!domestic&&form.formule==='couple',photoMember:photoMembre,photoPartner:photoPartenaire});
@@ -306,6 +308,8 @@ export default function Adhesion() {
             messagerie={messagerie} onMessagerieChange={setMessagerie}
             mobileMode={mobileMode} onMobileModeChange={setMobileMode}
             mobilePhone={mobilePhone} onMobilePhoneChange={setMobilePhone}
+            mobileCountry={mobileCountry} onMobileCountryChange={setMobileCountry}
+            mobileNetwork={mobileNetwork} onMobileNetworkChange={setMobileNetwork}
             titleId="pdc-adhesion-paiement" titlePrefix="5. "/>
         </div>
         {isNew && <p className="pdc-adhesion-fee-note">{t.membershipLegal}</p>}
@@ -353,10 +357,10 @@ export default function Adhesion() {
           ? 'Photos selected for the requested card(s). They are still on this device and have NOT been uploaded. Secure transfer will be enabled only after verified payment and a separate authorization for each beneficiary.'
           : 'Photos sélectionnées pour la ou les cartes demandées. Elles restent sur cet appareil et ne sont PAS encore téléversées. Le dépôt sécurisé sera activé uniquement après confirmation du paiement et autorisation individuelle pour chaque bénéficiaire.'}
       </p>}
-      {!domestic ? <PublicDiasporaCheckoutR5 data={{form,amounts,methode,messagerie,mobileMode,mobilePhone}}
+      {!domestic ? <PublicDiasporaCheckoutR5 data={{form,amounts,methode,messagerie,mobileMode,mobilePhone,mobileCountry,mobileNetwork}}
           photoMember={photoMembre} photoPartner={photoPartenaire} language={lang}/>
         : publicCheckoutSandboxEnabled()
-          ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie,mobileMode,mobilePhone}} language={lang}/>
+          ? <PublicCheckoutV5C29 source="membership" data={{form,amounts,methode,messagerie,mobileMode,mobilePhone,mobileCountry,mobileNetwork}} language={lang}/>
           : <p className="pdc-adhesion-alert">{t.noPayment}</p>}
       <div className="pdc-adhesion-actions"><button className="pdc-adhesion-secondary" type="button" onClick={()=>next(2)}>← {t.edit}</button>{!(domestic?publicCheckoutSandboxEnabled():diasporaR5Enabled())&&<button className="pdc-adhesion-primary" type="button" onClick={()=>navigate('/adhesion/merci?preview=1')}>{t.preview} →</button>}</div>
     </section>}

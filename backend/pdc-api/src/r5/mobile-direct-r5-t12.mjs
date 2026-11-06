@@ -2,6 +2,7 @@
 // Réservation SQL stable avant toute émission, zéro relance après issue incertaine.
 // Le rapprochement comptable et l'admission restent des opérations manuelles DISTINCTES.
 import {randomBytes, createHash, createHmac} from 'node:crypto';
+import {normalizeMobileWalletT12G} from '../../../../shared/mobile-wallet-t12g.mjs';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SESSION=/^[A-Za-z0-9_-]{43}$/;
@@ -9,13 +10,6 @@ const PRODUCT=/^PDC_[A-Za-z0-9_-]{24}$/;
 const AMOUNT=/^[1-9][0-9]{0,9}$/;
 const HASH=/^[a-f0-9]{64}$/;
 const fail=code=>{throw Error('PDC_T12_R5_'+code);};
-function phone237(input){
-  if(typeof input!=='string')fail('PHONE_INVALID');
-  const simple=input.replace(/[\s().-]/g,'');
-  const local=simple.startsWith('+237')?simple.slice(4):simple.startsWith('237')?simple.slice(3):simple;
-  if(!/^6\d{8}$/.test(local))fail('PHONE_INVALID');
-  return '237'+local;
-}
 export async function makeDiasporaMobileDirectR5T12({pool,mobileClient,webHookUrl,phoneHmacKey,
   enabled=false,environment='disabled',createProductId=()=>`PDC_${randomBytes(18).toString('base64url')}`}={}){
   if(enabled!==true||environment!=='sandbox'||typeof pool?.query!=='function'||
@@ -26,11 +20,15 @@ export async function makeDiasporaMobileDirectR5T12({pool,mobileClient,webHookUr
   if(identity!=='pdc_r5_intake_writer')fail('ROLE_INVALID');
   return Object.freeze({
     async create({orderId,sessionToken,method,messagingChannel=null,mobileMode,mobilePhone,
+      mobileCountry='CM',mobileNetwork=null,
       language='fr'}={}){
       if(!UUID.test(orderId??'')||!SESSION.test(sessionToken??'')||method!=='mobile'||
          mobileMode!=='direct'||messagingChannel!=null||!['fr','en'].includes(language))fail('INPUT_INVALID');
       // Ne pas envoyer de numéro de résidence par défaut : saisie EXPLICITE de débit.
-      const providerPhone=phone237(mobilePhone);
+      let wallet;
+      try {wallet=normalizeMobileWalletT12G({mobileCountry,mobilePhone,mobileNetwork});}
+      catch {fail('PHONE_INVALID');}
+      const providerPhone=wallet.providerPhone;
       const sHash=createHash('sha256').update(sessionToken).digest('hex');
       const mac=createHmac('sha256',phoneHmacKey).update(providerPhone).digest('hex');
       const productId=createProductId();
@@ -54,7 +52,8 @@ export async function makeDiasporaMobileDirectR5T12({pool,mobileClient,webHookUr
       try{
         const launched=await mobileClient.initiate({productId:r.product_id,
           productName:'Cotisation diaspora PDC',amountXaf:String(r.amount_xaf),
-          phoneNumber:providerPhone,webHookUrl});
+          phoneNumber:providerPhone,webHookUrl,
+          ...(wallet.mobileNetwork==='Wave'?{network:'Wave'}:{})});
         if(!['request_initiated','request_rejected'].includes(launched?.status)||
           launched.paymentConfirmed!==false||launched.membershipGranted!==false||
           launched.productId!==r.product_id)fail('PROVIDER_RESULT_INVALID');

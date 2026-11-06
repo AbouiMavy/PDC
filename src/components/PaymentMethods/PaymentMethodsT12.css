@@ -13,3 +13,10 @@
 .pdc-don-form__mobile-routes .pdc-t12-number input {width:100%;min-width:0;border:0;padding:12px;font:inherit;min-height:44px;}
 .pdc-don-form__mobile-routes .pdc-t12-direct p {color:#516e59;font-size:.83rem;line-height:1.5;margin:9px 0 0;}
 @media(max-width:600px){.pdc-don-form__mobile-routes{padding:14px 11px}.pdc-don-form__mobile-routes .pdc-t12-number{max-width:none}}
+
+/* T12-G : pays du portefeuille distinct de la residence. */
+.pdc-don-form__mobile-routes .pdc-t12-country{display:block;width:100%;max-width:350px;min-height:44px;margin:0 0 12px;padding:9px 11px;border:1px solid #aec9b6;border-radius:7px;background:#fff;color:#173f2c;font:inherit}
+.pdc-don-form__mobile-routes .pdc-t12-network{border:1px solid #d7e7dc;border-radius:8px;padding:9px 12px;margin:0 0 12px}
+.pdc-don-form__mobile-routes .pdc-t12-network legend{font-weight:750;color:#174d31}
+.pdc-don-form__mobile-routes .pdc-t12-network label{display:inline-flex;align-items:center;gap:7px;margin-right:18px;font-weight:500}
+@media(max-width:600px){.pdc-don-form__mobile-routes .pdc-t12-country{max-width:none}.pdc-don-form__mobile-routes .pdc-t12-network label{display:flex;margin:6px 0}}

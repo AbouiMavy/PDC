@@ -17,16 +17,18 @@ function residence(raw, country) {
   return result;
 }
 
-function common({firstName,lastName,email,phoneE164,country,method,messagingChannel,mobileMode,mobilePhone},idempotencyKey) {
+function common({firstName,lastName,email,phoneE164,country,method,messagingChannel,mobileMode,mobilePhone,mobileCountry,mobileNetwork},idempotencyKey) {
   if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9:_-]{16,128}$/.test(idempotencyKey)) fail('INVALID_REFERENCE');
   if (!METHODS.has(method) || (method==='tara' && !['general','whatsapp','telegram','dikalo'].includes(messagingChannel)) ||
       (method!=='tara' && messagingChannel!=null)) fail('INVALID_CHANNEL');
   if (![firstName,lastName,email,phoneE164,country].every(x=>typeof x==='string' && x.length>0)) fail('MISSING_IDENTITY');
   const direct=method==='mobile' && mobileMode==='direct';
-  const selection=direct?prepareMobileSelectionT12({method,mobileMode,mobilePhone}):null;
+  const selection=direct?prepareMobileSelectionT12({method,mobileMode,mobilePhone,mobileCountry,mobileNetwork}):null;
   return {idempotencyKey,firstName,lastName,email,phoneE164,country,method,
     ...(method==='tara'?{messagingChannel}: {}),
-    ...(direct?{mobileMode:'direct',mobilePhone:selection.phoneE164}:{})};
+    ...(direct?{mobileMode:'direct',mobilePhone:selection.phoneE164,
+      mobileCountry:selection.mobileCountry,
+      ...(selection.mobileNetwork?{mobileNetwork:selection.mobileNetwork}:{})}:{})};
 }
 
 /** Répartir exactement 10 000 points de base sans virgules flottantes.
@@ -61,7 +63,8 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
     const base=common({firstName:data.prenom,lastName:data.nom,email:data.email,
       phoneE164:data.telephoneE164,country:data.pays,method:data.methode,
       messagingChannel:data.methode==='tara'?data.messagerie:null,
-      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone},idempotencyKey);
+      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone,
+      mobileCountry:data.mobileCountry,mobileNetwork:data.mobileNetwork},idempotencyKey);
     const designations=data.affectation==='libre'?[{purpose:'libre',percentBps:10000}]:
       data.affectation==='ciblee'?allocationInBasisPoints(data.montant,data.repartition):fail('INVALID_ALLOCATION');
     return Object.freeze({kind:'donation',...base,amountXaf:String(data.montant),
@@ -87,7 +90,8 @@ export function buildPublicOrderPayload({source,data,idempotencyKey}={}) {
       phoneE164:'+237'+String(f.telephone||'').replace(/[\s().-]/g,''),
       country:'CM',method:data.methode,
       messagingChannel:data.methode==='tara'?data.messagerie:null,
-      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone},idempotencyKey);
+      mobileMode:data.mobileMode,mobilePhone:data.mobilePhone,
+      mobileCountry:data.mobileCountry,mobileNetwork:data.mobileNetwork},idempotencyKey);
     return Object.freeze({kind:'initial_membership',...base,dob:f.dateNaissance,
       birthPlace:f.lieuNaissance,civility:f.civilite,memberCategory:f.categorie,
       acceptedStatutes:true,acceptedDataNotice:true,annualMode:f.modeCotisation,annualPaymentXaf:String(annualPaid),
