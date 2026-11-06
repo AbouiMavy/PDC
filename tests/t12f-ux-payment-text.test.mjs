@@ -18,6 +18,8 @@ test('T12-F : le texte anglais est cohérent avec la version française',()=>{
 });
 test('T12-F : indisponibilité du parcours et confirmation de la transaction restent distinctes',()=>{
   assert.match(fr,/paymentUnavailable: 'Le paiement en ligne n’est pas disponible dans cette version du site\./);
-  assert.match(fr,/cardHelp: '[^']*PDC vérifiera la transaction/);
+  assert.match(fr,/cardHelp: '[^']*Le PDC confirmera la contribution après vérification du paiement\./);
+  assert.match(fr,/taraHelp: '[^']*Le PDC confirmera la contribution après vérification du paiement\./);
+  assert.match(en,/cardHelp:'[^']*The PDC will confirm your contribution once the payment has been verified\./);
   assert.match(en,/paymentUnavailable:'Online payment is unavailable in this version of the website\./);
 });
